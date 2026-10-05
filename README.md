@@ -58,11 +58,36 @@ Star schema defined in [`sql/01_schema.sql`](sql/01_schema.sql). All geometries 
 | `dw.dim_hour` | Dimension | One hour of day (+ unknown) |
 | `dw.dim_source` | Dimension | One original dataset (traceability) |
 
-Diagram: _TODO (Jose)_ `docs/warehouse_model.png` · Data dictionary: [`docs/data_dictionary.md`](docs/data_dictionary.md)
+![Dimensional model](docs/warehouse_model.png)
+
+Source: [`docs/warehouse_model.mmd`](docs/warehouse_model.mmd) (Mermaid) · Data dictionary: [`docs/data_dictionary.md`](docs/data_dictionary.md)
+
+Every fact keeps one row per original record (AGEB, establishment, incident) with its point geometry, so all KPIs can be recomputed from the warehouse without returning to the raw files. Aggregation happens only in the views.
+
+**Validation** — [`sql/04_validation.sql`](sql/04_validation.sql) runs as the last pipeline step and aborts on failure: row counts `dw` = `stg`, 526 valid AGEBs in EPSG:6372 (259.86 km²), census population = 957,399, every point inside its assigned AGEB, SCIAN groups consistent, KPI view reconciles with the facts and every KPI is computable.
 
 ## 6. KPIs
 
-_TODO (Jose + owners): definitions and formulas, implemented in `sql/03_views.sql`._
+Implemented in [`sql/03_views.sql`](sql/03_views.sql). `dw.v_kpi_ageb` has one row per urban AGEB; Phase 3 loads it with `src.analysis.data.load_kpis()`.
+
+| Category | KPI | Column | Formula |
+|---|---|---|---|
+| Demographic | Total Population | `pop_total` | Census `POBTOT` |
+| Demographic | Population Density | `pop_density_km2` | `pop_total / area_km2` |
+| Demographic | Economically Active Population Rate | `pea_rate` | `PEA / P_12YMAS` (PEA is defined for population aged 12+) |
+| Demographic | Population by Age Group | `pct_0_14`, `pct_15_64`, `pct_65_plus` | `100 × group / pop_total` |
+| Economic | Total Businesses | `businesses_total` | count of DENUE establishments |
+| Economic | Business Density | `business_density_km2` | `businesses_total / area_km2` |
+| Economic | Businesses per 1,000 Residents | `businesses_per_1k` | `1000 × businesses_total / pop_total` |
+| Economic | Retail Density | `retail_density_km2` | SCIAN 46 establishments / `area_km2` |
+| Economic | Service Density | `service_density_km2` | SCIAN 51–56, 61, 62, 71, 72, 81 / `area_km2` |
+| Economic | Dominant Economic Activity | `dominant_sector`, `dominant_sector_share` | SCIAN sector with most establishments (ties alphabetical) and its share |
+| Public safety | Total Crime Incidents | `crime_total` | count of incidents assigned to the AGEB |
+| Public safety | Crime Rate | `crime_rate_per_1k` | `1000 × crime_total / pop_total` |
+| Public safety | Incidents by Type and Time | view `dw.v_crime_by_type_time` | incidents by AGEB × type × month × weekday × time band |
+| Public safety | Crime relative to Business Activity | `crimes_per_100_businesses` | `100 × crime_total / businesses_total` |
+
+Ratios with a zero denominator are `NULL`. `low_population` flags the 32 AGEBs with fewer than 100 residents (6 with none); their per-capita rates are unstable (e.g. the historic centre has very few residents and thousands of businesses), so analyses exclude them by default. Supporting view: `dw.v_business_by_sector` (establishments per AGEB × sector).
 
 ## 7. Spatial analysis
 

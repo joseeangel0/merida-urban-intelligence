@@ -8,7 +8,35 @@ _TODO_
 
 ## dim_source, dim_date, dim_hour — _owner: Jose_
 
-_TODO_
+**dw.dim_source** — one row per original dataset (traceability).
+
+| Column | Type | Description |
+|---|---|---|
+| `source_key` | smallint PK | Surrogate key |
+| `source_code` | text UK | Key in `src/config.py:SOURCES` and `data/raw/manifest.json` |
+| `source_name`, `publisher`, `url` | text | Official name, publisher and download URL |
+| `version_label` | text | Edition of the dataset (e.g. `CPV 2020`) |
+| `original_grain` | text | One row of the original file represents … |
+| `sha256` | char(64) | Hash of the downloaded zip (proves the raw file is unchanged) |
+
+**dw.dim_date** — one row per calendar day between the earliest and latest date in the facts.
+
+| Column | Type | Description |
+|---|---|---|
+| `date_key` | int PK | `YYYYMMDD` |
+| `full_date` | date UK | Calendar date |
+| `year`, `quarter`, `month`, `day` | smallint | Calendar parts |
+| `month_name`, `day_name` | text | English names |
+| `day_of_week` | smallint | ISO, 1 = Monday … 7 = Sunday |
+| `is_weekend` | boolean | Saturday or Sunday |
+
+**dw.dim_hour** — static, 25 rows.
+
+| Column | Type | Description |
+|---|---|---|
+| `hour_key` | smallint PK | 0–23; −1 = hour unknown |
+| `hour_label` | text | `HH:00-HH:59` |
+| `time_band` | text | Night (00-05), Morning (06-11), Afternoon (12-17), Evening (18-23), Unknown |
 
 ## fact_census_ageb — _owner: Julio_
 
@@ -24,4 +52,27 @@ _TODO_
 
 ## KPI views (`sql/03_views.sql`) — _owner: Jose_
 
-_TODO_
+**dw.v_kpi_ageb** — one row per urban AGEB (526). Formulas: [README §6](../README.md#6-kpis).
+
+| Column | Type | Unit |
+|---|---|---|
+| `geo_key`, `cvegeo`, `loc_name`, `is_city_core` | — | from `dim_geography` |
+| `low_population` | boolean | `pop_total < 100` |
+| `area_km2` | float | km² |
+| `pop_total` | int | persons |
+| `pop_density_km2` | float | persons / km² |
+| `pea_rate` | float | proportion 0–1 |
+| `pct_0_14`, `pct_15_64`, `pct_65_plus` | float | % of `pop_total` |
+| `businesses_total`, `retail_total`, `services_total` | int | establishments |
+| `business_density_km2`, `retail_density_km2`, `service_density_km2` | float | establishments / km² |
+| `businesses_per_1k` | float | establishments per 1,000 residents |
+| `dominant_sector` | text | SCIAN sector name |
+| `dominant_sector_share` | float | proportion 0–1 |
+| `crime_total` | int | incidents |
+| `crime_rate_per_1k` | float | incidents per 1,000 residents |
+| `crimes_per_100_businesses` | float | incidents per 100 establishments |
+| `geom` | MultiPolygon, EPSG:6372 | AGEB polygon |
+
+**dw.v_crime_by_type_time** — grain: AGEB × crime type × year-month × day of week × time band. Columns: `geo_key`, `cvegeo`, `crime_type`, `crime_category`, `year`, `month`, `month_name`, `day_of_week`, `day_name`, `is_weekend`, `time_band`, `incidents`. Calendar columns are `NULL` for incidents without a date.
+
+**dw.v_business_by_sector** — grain: AGEB × SCIAN sector. Columns: `geo_key`, `cvegeo`, `sector_code`, `sector_name`, `activity_group`, `establishments`, `share_in_ageb`.
