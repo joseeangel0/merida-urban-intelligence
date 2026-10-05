@@ -35,9 +35,9 @@ _TODO (Lorena): alternatives considered (municipality, locality, AGEB, block, co
 
 ## 4. ETL pipeline
 
-```
-RAW (data/raw, unchanged) → CLEAN (src/transform) → SPATIAL JOIN (src/transform/spatial.py) → STAGING (stg.*) → DW (dw.*)
-```
+![ETL pipeline](docs/pipeline.png)
+
+Source: [`docs/pipeline.mmd`](docs/pipeline.mmd). Every step is run by `python -m src.pipeline` (see §8).
 
 _TODO (each owner): principal cleaning, transformation and spatial-integration decisions per source, including every transformation that changes grain, meaning or geographic representation._
 

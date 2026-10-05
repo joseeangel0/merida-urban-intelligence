@@ -1,0 +1,30 @@
+flowchart LR
+    subgraph RAW["RAW · data/raw (unchanged, SHA-256 manifest)"]
+        C["Census 2020<br/>AGEB / block CSV"]
+        D["DENUE<br/>establishments CSV"]
+        M["Marco Geoestadístico 2020<br/>AGEB polygons SHP"]
+        K["Crime incidents<br/>lat/lon"]
+    end
+    subgraph CLEAN["CLEAN · src/transform"]
+        GEO["geography.py<br/>526 urban AGEBs · EPSG:6372 · area km²"]
+        CEN["census.py<br/>AGEB rows · * / N/D → NULL"]
+        DEN["denue.py<br/>SCIAN groups · size bands"]
+        CRI["crime.py<br/>types · date · hour"]
+    end
+    SJ{{"SPATIAL JOIN · spatial.py<br/>points → EPSG:6372 → within AGEB"}}
+    subgraph DB["POSTGRESQL / POSTGIS"]
+        STG[("stg.*<br/>staging")]
+        DW[("dw.*<br/>star schema")]
+        V[["views · KPIs<br/>04_validation"]]
+    end
+    A["Phase 3<br/>maps · correlation · Moran · LISA"]
+
+    M --> GEO
+    C --> CEN
+    D --> DEN --> SJ
+    K --> CRI --> SJ
+    GEO --> SJ
+    GEO --> STG
+    CEN --> STG
+    SJ --> STG
+    STG -- "02_load.sql" --> DW -- "03_views.sql" --> V -- "load_kpis()" --> A
