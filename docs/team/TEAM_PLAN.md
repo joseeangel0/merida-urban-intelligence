@@ -2,13 +2,13 @@
 
 Everything each member needs: what to build, which files you own, the data contract your output must follow, a ready-to-paste AI prompt, and the **acceptance tests ("win conditions")** that prove your part is done.
 
-| # | Member | Role | Owns |
-|---|---|---|---|
-| 1 | **Jose Pech** | Repo lead · DW architect | repo setup, `sql/01_schema.sql`, model diagram, `sql/03_views.sql`, `sql/04_validation.sql`, `src/analysis/data.py`, README integration |
-| 2 | **Julio de Aquino** | Demographic layer | Census profiling, `src/transform/census.py`, correlation analysis |
-| 3 | **Ricardo Horta** | Economic layer | DENUE profiling, `src/transform/denue.py`, spatial weights, Global Moran + LISA |
-| 4 | **Lorena Pérez** | Geography & integration | geographic-unit decision, `src/transform/geography.py`, `src/transform/spatial.py`, `src/load/load_staging.py`, `sql/02_load.sql`, KPI maps |
-| 5 | **Valeria Hernández** | Public-safety layer · report lead | crime dataset search, `src/transform/crime.py`, crime temporal analysis, bivariate Moran, report assembly |
+| # | Member | GitHub | Role | Owns |
+|---|---|---|---|---|
+| 1 | **Jose Pech** | `joseeangel0` | Repo lead · DW architect | repo setup, `sql/01_schema.sql`, model diagram, `sql/03_views.sql`, `sql/04_validation.sql`, `src/analysis/data.py`, README integration |
+| 2 | **Julio de Aquino** | `pyrawn` | Demographic layer | Census profiling, `src/transform/census.py`, correlation analysis |
+| 3 | **Nora Horta** | `strangelove-t` | Economic layer | DENUE profiling, `src/transform/denue.py`, spatial weights, Global Moran + LISA |
+| 4 | **Lorena Pérez** | `ldpl3012` | Geography & integration | geographic-unit decision, `src/transform/geography.py`, `src/transform/spatial.py`, `src/load/load_staging.py`, `sql/02_load.sql`, KPI maps |
+| 5 | **Valeria Hernández** | `valnix140405` | Public-safety layer · report lead | crime dataset search, `src/transform/crime.py`, crime temporal analysis, bivariate Moran, report assembly |
 
 ---
 
@@ -80,8 +80,8 @@ All GeoParquet files use **EPSG:6372** and the geometry column is named `geometr
 |---|---|---|---|
 | `ageb.parquet` | Lorena | 526 | `cvegeo` (str, 13), `cve_ent`, `cve_mun`, `cve_loc`, `cve_ageb`, `mun_name`, `loc_name`, `is_city_core` (bool), `area_km2` (float), `geometry` (MultiPolygon) |
 | `census_ageb.parquet` | Julio | 526 | `cvegeo` + every measure column of `dw.fact_census_ageb` with the same names (`pop_total` … `n_suppressed_fields`) — no geometry |
-| `economic_activity.parquet` | Ricardo | ≈ 900 | `scian_code` (str, 6), `activity_name`, `subsector_code` (str, 3), `sector_code` (`'46'`, `'31-33'`, `'48-49'`, …), `sector_name` (English), `activity_group` (`Retail` / `Services` / `Other`) |
-| `business.parquet` | Ricardo | ≈ 56,667 | `denue_id` (int64), `clee`, `establishment_name`, `scian_code`, `per_ocu_label` (exact DENUE text), `alta_date` (date, 1st of month, nullable), `cvegeo` (from spatial join), `cvegeo_reported` (from DENUE columns), `geometry` (Point) |
+| `economic_activity.parquet` | Nora | ≈ 900 | `scian_code` (str, 6), `activity_name`, `subsector_code` (str, 3), `sector_code` (`'46'`, `'31-33'`, `'48-49'`, …), `sector_name` (English), `activity_group` (`Retail` / `Services` / `Other`) |
+| `business.parquet` | Nora | ≈ 56,667 | `denue_id` (int64), `clee`, `establishment_name`, `scian_code`, `per_ocu_label` (exact DENUE text), `alta_date` (date, 1st of month, nullable), `cvegeo` (from spatial join), `cvegeo_reported` (from DENUE columns), `geometry` (Point) |
 | `crime.parquet` | Valeria | depends on source | `source_incident_id` (str), `crime_type` (English, harmonised), `crime_type_raw`, `crime_category` (`Property` / `Violent` / `Other` …), `incident_date` (date, nullable), `incident_hour` (int −1…23, −1 = unknown), `cvegeo`, `geometry` (Point) |
 
 Each transform module exposes `run()` and is called by `python -m src.pipeline transform`.
@@ -233,7 +233,7 @@ win conditions in TEAM_PLAN §4.2. Do not modify files owned by other members. C
 
 ---
 
-### 4.3 Ricardo Horta — Economic layer
+### 4.3 Nora Horta — Economic layer
 
 **Phase 1 (D1)** — `notebooks/12_profile_denue.ipynb`
 - Load `data/raw/denue_31/conjunto_de_datos/denue_inegi_31_.csv` (**`encoding="latin-1"`**, dtype `str`).
@@ -251,7 +251,7 @@ win conditions in TEAM_PLAN §4.2. Do not modify files owned by other members. C
 
 **AI prompt (Phase 1–2):**
 ```
-You are helping Ricardo Horta in the repository merida-urban-intelligence. First read README.md,
+You are helping Nora Horta in the repository merida-urban-intelligence. First read README.md,
 docs/team/TEAM_PLAN.md (sections 0, 3 and 4.3), sql/01_schema.sql (dim_economic_activity, dim_business_size,
 fact_business) and src/transform/spatial.py.
 Phase 1: notebooks/12_profile_denue.ipynb profiling INEGI DENUE Yucatán (data/raw/denue_31, encoding latin-1,
@@ -338,10 +338,23 @@ Run `python -m src.pipeline schema stage load` and show the row counts per table
 
 **Phase 1 (D0–D1) — 🚨 highest-risk task: find the crime dataset (deadline D1 14:00)**
 
-No official open dataset of **georeferenced incidents** for Mérida was found on D0: SESNSP publishes only municipal monthly totals, and Fiscalía/SSP Yucatán do not publish point data. Steps:
+**Search already done on D0 (Jose) — no public point-level crime dataset exists for Mérida.** Record this log in your notebook (it is evidence for the data assessment):
+
+| Source checked | Result |
+|---|---|
+| SESNSP — [datos abiertos de incidencia delictiva](https://www.gob.mx/sesnsp/acciones-y-programas/datos-abiertos-de-incidencia-delictiva) | **Real but aggregated**: monthly counts per municipality and crime type, 2015–2025 (XLSX). No coordinates. **Download it anyway** (Mérida = `31050`): useful for calibration/validation in any scenario. |
+| Fiscalía General del Estado de Yucatán (fge.yucatan.gob.mx) | No open data; only procedures and press releases. |
+| Yucatán transparency open-data portal (transparencia.yucatan.gob.mx/datos_abiertos.php) | Only budget/expenditure datasets. |
+| Mérida Geoportal (merida.gob.mx/geoportal) | Layers for COVID, jobs, bus stops, health, sports units — no public-safety layer. |
+| CEISP Yucatán Data Observatory (ceisp.gob.mx/ObservatorioDatos, registration required) | Only 104 monthly PDF reports (2018–2026); on 4 Oct 2026 the server returned `null` download links for every file tested. No CSV/API/map. **The site looked broken, not empty: retry tomorrow at a different time** (log in at ceisp.gob.mx → Observatorio de datos → Seguridad Pública → Informes). If a PDF opens, check whether it has tables or maps **by colonia** for Mérida; if not, ask for the reports by phone (999) 689-15-30 or the site's contact form. |
+| 911 open data | Only CDMX and Puebla publish geolocated calls. |
+| Kaggle, GitHub, Zenodo, Figshare, academic repositories (UADY, CentroGeo) | Nothing for Mérida. |
+
+Steps:
 1. **Today:** write to the instructor (the brief allows "instructor-approved datasets"):
-   > *Dear professor, for the Unit 2 project we could not find a public georeferenced (lat/lon) crime dataset for Mérida — SESNSP only reports municipal totals. Could you recommend or approve a dataset? If none exists, would you accept (a) incidents collected from news reports and geocoded by us, or (b) a simulated point dataset calibrated to official SESNSP monthly counts for Mérida, clearly labelled as simulated?*
-2. In parallel, search (document every source checked, even failed ones, in the notebook): Mérida Geoportal (merida.gob.mx/geoportal) and municipal open data, Yucatán state open data / transparency portal, Fiscalía General del Estado de Yucatán, SSP Yucatán, datos.gob.mx, Kaggle, GitHub, CentroGeo/IDEGEO, UADY research data, the national transparency platform (PNT).
+   > *Dear Professor, for the Unit 2 project we searched for a georeferenced crime dataset for Mérida (SESNSP, Fiscalía General del Estado, the state open-data portal, the Mérida Geoportal, the CEISP data observatory, 911 open data, Kaggle/GitHub/Zenodo). The only official data are SESNSP municipal monthly totals by crime type, without coordinates; the CEISP observatory only offers monthly PDF reports and its download links currently fail. Is there a dataset you recommend or can share? If not, would you accept either (a) incidents collected from local news and geocoded by us, or (b) simulated incident points calibrated to the official SESNSP monthly totals for Mérida, clearly labelled as simulated? Thank you.*
+   Also ask classmates from other teams whether the instructor shared a crime file with them.
+2. While waiting for the answer: download the SESNSP municipal file, filter Mérida, and write `crime.py` against the contract (§3.2) so only the input changes once the source is decided. If you find a source not in the table above, add it.
 3. A dataset is acceptable if: inside Mérida, one row per incident with lat/lon, crime type, date (ideally hour), documented origin. Ideally ≥ 1,000 incidents.
 4. Whatever the outcome, record the source (URL, date, licence, original grain) and add it to `src/config.py:SOURCES` and the manifest (tell Jose). **If the data are simulated, every map, table and the report must say so.** Never present simulated data as real.
 
@@ -353,7 +366,7 @@ Then `notebooks/13_profile_crime.ipynb`: profiling (coordinates, types, dates, d
 
 **Phase 3 (D3)** — `notebooks/33_crime_patterns_bivariate.ipynb`
 - Incidents by type and time (month, weekday, time band) from `dw.v_crime_by_type_time` — charts to `outputs/figures/`.
-- **Bivariate Moran's I** (`esda.Moran_BV`, 999 permutations) for ≥ 1 pair, e.g. business density vs crime rate, using Ricardo's `build_weights`; bivariate LISA map optional. Explain the neighbourhood rule and that association ≠ causation.
+- **Bivariate Moran's I** (`esda.Moran_BV`, 999 permutations) for ≥ 1 pair, e.g. business density vs crime rate, using Nora's `build_weights`; bivariate LISA map optional. Explain the neighbourhood rule and that association ≠ causation.
 
 **Report lead (D3):** collect each member's section from `report/sections/*.md`, assemble the 4–6 page PDF (`report/technical_report.pdf`), make sure it does **not** repeat the README, and write section 5 "Limitations and interpretation cautions".
 
@@ -361,8 +374,8 @@ Then `notebooks/13_profile_crime.ipynb`: profiling (coordinates, types, dates, d
 ```
 You are helping Valeria Hernández in the repository merida-urban-intelligence. Read docs/team/TEAM_PLAN.md
 (sections 0, 3 and 4.5). Search the web for a public dataset of georeferenced crime incidents (latitude/longitude,
-crime type, date) for the municipality of Mérida, Yucatán, Mexico. Check every source listed in §4.5 step 2 and
-any other you find. For each source give: URL, publisher, spatial granularity, temporal coverage, variables,
+crime type, date) for the municipality of Mérida, Yucatán, Mexico. The table in §4.5 lists sources already checked
+(do not repeat them); look only for new ones. For each source give: URL, publisher, spatial granularity, temporal coverage, variables,
 licence, and whether it meets the criteria in §4.5 step 3. Do not invent sources or URLs; if a link cannot be
 verified say so. End with a ranked recommendation.
 ```
@@ -399,7 +412,7 @@ Each member writes their section as `report/sections/<n>_<topic>.md` (own commit
 | 1. Problem and data sources | Julio | Why, which sources, temporal coverage of each |
 | 2. Geographic integration strategy | Lorena | Unit choice, CRS, point-in-polygon results (kept/dropped %) |
 | 3. Data Warehouse architecture | Jose | Diagram, grains, pipeline in one figure |
-| 4. Key KPIs and spatial analysis | Ricardo | KPI table, Moran/LISA results |
+| 4. Key KPIs and spatial analysis | Nora | KPI table, Moran/LISA results |
 | 5. Main findings (with maps) | All (each adds 1–2 findings from their analysis) | Maps/figures + interpretation |
 | 6. Limitations and cautions | Valeria | Temporal mismatch, suppression, MAUP, data origin, association ≠ causation |
 

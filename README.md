@@ -4,7 +4,7 @@
 
 A reproducible geospatial Data Warehouse (PostgreSQL/PostGIS) that integrates demographic (INEGI Census 2020), economic (INEGI DENUE), geographic (INEGI Marco Geoestadístico 2020) and public-safety data for the municipality of Mérida, Yucatán, to calculate territorial KPIs and analyse spatial patterns at the **urban AGEB** level.
 
-**Team:** Jose Pech · Julio de Aquino · Ricardo Horta · Lorena Pérez · Valeria Hernández
+**Team:** Jose Pech · Julio de Aquino · Nora Horta · Lorena Pérez · Valeria Hernández
 
 > 🚧 Sections marked _TODO (owner)_ are filled in as each phase is completed. Team workflow: [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/team/TEAM_PLAN.md`](docs/team/TEAM_PLAN.md).
 
@@ -23,7 +23,7 @@ The project makes it possible to:
 | Layer | Source | Original grain | Key variables | Owner |
 |---|---|---|---|---|
 | Demographic | INEGI Censo de Población y Vivienda 2020 — results by AGEB and urban block | Urban block / AGEB, with locality and municipality total rows | `POBTOT`, `POB0_14`, `POB15_64`, `POB65_MAS`, `P_12YMAS`, `PEA`, `VIVTOT`, ... | Julio |
-| Economic | INEGI DENUE (Yucatán) | One establishment (point, lat/lon) | `id`, `codigo_act` (SCIAN), `per_ocu`, `latitud`, `longitud`, `fecha_alta` | Ricardo |
+| Economic | INEGI DENUE (Yucatán) | One establishment (point, lat/lon) | `id`, `codigo_act` (SCIAN), `per_ocu`, `latitud`, `longitud`, `fecha_alta` | Nora |
 | Geographic | INEGI Marco Geoestadístico 2020 (`31a.shp`, urban AGEB) | One polygon per AGEB | `CVEGEO`, `CVE_LOC`, `CVE_AGEB`, geometry (EPSG:6372) | Lorena |
 | Public safety | _TODO (Valeria)_ | One incident (point) | lat/lon, crime type, date/time | Valeria |
 
@@ -91,7 +91,7 @@ Ratios with a zero denominator are `NULL`. `low_population` flags the 32 AGEBs w
 
 ## 7. Spatial analysis
 
-_TODO (Julio, Ricardo, Lorena, Valeria): neighbourhood rule, correlation, Global Moran's I, LISA, bivariate Moran's I, findings._
+_TODO (Julio, Nora, Lorena, Valeria): neighbourhood rule, correlation, Global Moran's I, LISA, bivariate Moran's I, findings._
 
 ## 8. Reproducing the project
 

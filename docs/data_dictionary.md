@@ -42,7 +42,7 @@ _TODO_
 
 _TODO: column, description, source variable, unit, handling of suppressed values._
 
-## dim_economic_activity, dim_business_size, fact_business — _owner: Ricardo_
+## dim_economic_activity, dim_business_size, fact_business — _owner: Nora_
 
 _TODO_
 
