@@ -26,7 +26,8 @@ git push -u origin <name>/<short-task>
 gh pr create --fill                             # or open the PR on github.com
 ```
 
-- One branch and one PR per task. Do not push directly to `main`.
+- One branch and one PR per task. `main` is protected: direct pushes are rejected and every PR needs **1 approval** from another member.
+- **CI** (GitHub Actions) runs on every PR: Python lint + every module must import, and `01_schema.sql` + `03_views.sql` must run on PostGIS. Fix red checks before asking for review.
 - Someone else reviews and merges with **"Create a merge commit"** (never "Squash and merge": it would collapse your commits into one).
 - Small commits with clear messages. No "final upload" commits.
 - Never commit `data/raw/`, `data/processed/`, `.env` or `.venv/`.
