@@ -6,7 +6,7 @@ Everything each member needs: what to build, which files you own, the data contr
 |---|---|---|---|---|
 | 1 | **Jose Pech** | `joseeangel0` | Repo lead · DW architect | repo setup, `sql/01_schema.sql`, model diagram, `sql/03_views.sql`, `sql/04_validation.sql`, `src/analysis/data.py`, README integration |
 | 2 | **Julio de Aquino** | `pyrawn` | Demographic layer | Census profiling, `src/transform/census.py`, correlation analysis |
-| 3 | **Nora** | `strangelove-t` | Economic layer | DENUE profiling, `src/transform/denue.py`, spatial weights, Global Moran + LISA |
+| 3 | **Nora Horta** | `strangelove-t` | Economic layer | DENUE profiling, `src/transform/denue.py`, spatial weights, Global Moran + LISA |
 | 4 | **Lorena Pérez** | `ldpl3012` | Geography & integration | geographic-unit decision, `src/transform/geography.py`, `src/transform/spatial.py`, `src/load/load_staging.py`, `sql/02_load.sql`, KPI maps |
 | 5 | **Valeria Hernández** | `valnix140405` | Public-safety layer · report lead | crime dataset search, `src/transform/crime.py`, crime temporal analysis, bivariate Moran, report assembly |
 
@@ -233,7 +233,7 @@ win conditions in TEAM_PLAN §4.2. Do not modify files owned by other members. C
 
 ---
 
-### 4.3 Nora — Economic layer
+### 4.3 Nora Horta — Economic layer
 
 **Phase 1 (D1)** — `notebooks/12_profile_denue.ipynb`
 - Load `data/raw/denue_31/conjunto_de_datos/denue_inegi_31_.csv` (**`encoding="latin-1"`**, dtype `str`).
@@ -251,7 +251,7 @@ win conditions in TEAM_PLAN §4.2. Do not modify files owned by other members. C
 
 **AI prompt (Phase 1–2):**
 ```
-You are helping Nora in the repository merida-urban-intelligence. First read README.md,
+You are helping Nora Horta in the repository merida-urban-intelligence. First read README.md,
 docs/team/TEAM_PLAN.md (sections 0, 3 and 4.3), sql/01_schema.sql (dim_economic_activity, dim_business_size,
 fact_business) and src/transform/spatial.py.
 Phase 1: notebooks/12_profile_denue.ipynb profiling INEGI DENUE Yucatán (data/raw/denue_31, encoding latin-1,

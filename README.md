@@ -4,7 +4,7 @@
 
 A reproducible geospatial Data Warehouse (PostgreSQL/PostGIS) that integrates demographic (INEGI Census 2020), economic (INEGI DENUE), geographic (INEGI Marco Geoestadístico 2020) and public-safety data for the municipality of Mérida, Yucatán, to calculate territorial KPIs and analyse spatial patterns at the **urban AGEB** level.
 
-**Team:** Jose Pech · Julio de Aquino · Nora · Lorena Pérez · Valeria Hernández
+**Team:** Jose Pech · Julio de Aquino · Nora Horta · Lorena Pérez · Valeria Hernández
 
 > 🚧 Sections marked _TODO (owner)_ are filled in as each phase is completed. Team workflow: [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/team/TEAM_PLAN.md`](docs/team/TEAM_PLAN.md).
 
