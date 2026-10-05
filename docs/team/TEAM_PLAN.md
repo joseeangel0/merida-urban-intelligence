@@ -110,7 +110,9 @@ def assign_ageb(points: gpd.GeoDataFrame) -> gpd.GeoDataFrame: ...
 
   `geo_key, cvegeo, loc_name, is_city_core, low_population, area_km2, pop_total, pop_density_km2, pea_rate, pct_0_14, pct_15_64, pct_65_plus, businesses_total, business_density_km2, businesses_per_1k, retail_total, retail_density_km2, services_total, service_density_km2, dominant_sector, dominant_sector_share, crime_total, crime_rate_per_1k, crimes_per_100_businesses, geom`
 
-  Other views: `dw.v_crime_by_type_time` (AGEB × crime type × month × time band), `dw.v_business_by_sector` (AGEB × sector).
+  Other views: `dw.v_crime_by_type_time` (AGEB × crime type × year-month × day of week × time band), `dw.v_business_by_sector` (AGEB × sector).
+
+  ✅ **Done (Jose, D0):** views, `04_validation.sql` and `load_kpis()` are implemented and were tested end-to-end with the real INEGI data. Heads-up for analysts: per-capita KPIs have extreme outliers in AGEBs with few residents (e.g. `businesses_per_1k` up to ≈ 13,900 in the historic centre), so prefer Spearman and quantile classification, and keep `exclude_low_population=True`.
 - `src/analysis/data.py` (Jose): `load_kpis(city_core_only=True, exclude_low_population=True) -> GeoDataFrame` reading `dw.v_kpi_ageb` with `gpd.read_postgis`. **All Phase 3 notebooks use this function.**
 
 ### 3.5 Reference values (computed on D0 — use them in your tests)

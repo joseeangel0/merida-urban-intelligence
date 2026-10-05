@@ -1,0 +1,108 @@
+---
+title: Mérida Urban Intelligence — dimensional model (schema dw, EPSG:6372)
+---
+erDiagram
+    dim_geography ||--|| fact_census_ageb : "geo_key"
+    dim_geography ||--o{ fact_business : "geo_key"
+    dim_geography ||--o{ fact_crime_incident : "geo_key"
+    dim_economic_activity ||--o{ fact_business : "activity_key"
+    dim_business_size ||--o{ fact_business : "size_key"
+    dim_date |o--o{ fact_business : "date_key (alta)"
+    dim_date |o--o{ fact_crime_incident : "date_key"
+    dim_hour ||--o{ fact_crime_incident : "hour_key"
+    dim_crime_type ||--o{ fact_crime_incident : "crime_type_key"
+    dim_source ||--o{ fact_census_ageb : "source_key"
+    dim_source ||--o{ fact_business : "source_key"
+    dim_source ||--o{ fact_crime_incident : "source_key"
+
+    fact_census_ageb {
+        int geo_key PK,FK "GRAIN: 1 urban AGEB, Census 2020"
+        smallint source_key FK
+        int pop_total "POBTOT"
+        int pop_0_14 "POB0_14"
+        int pop_15_64 "POB15_64"
+        int pop_65_plus "POB65_MAS"
+        int pop_12_plus "P_12YMAS"
+        int pea "PEA"
+        int pop_employed "POCUPADA"
+        int dwellings_total "VIVTOT"
+        numeric avg_schooling "GRAPROES"
+        smallint n_suppressed_fields
+    }
+    fact_business {
+        bigint business_key PK "GRAIN: 1 DENUE establishment"
+        bigint denue_id UK
+        int geo_key FK
+        int activity_key FK
+        smallint size_key FK
+        int date_key FK
+        smallint source_key FK
+        char cvegeo_reported "audit of spatial join"
+        smallint establishment_count "= 1"
+        geometry geom "Point 6372"
+    }
+    fact_crime_incident {
+        bigint incident_key PK "GRAIN: 1 crime incident"
+        text source_incident_id
+        int geo_key FK
+        int crime_type_key FK
+        int date_key FK
+        smallint hour_key FK
+        smallint source_key FK
+        smallint incident_count "= 1"
+        geometry geom "Point 6372"
+    }
+    dim_geography {
+        int geo_key PK "1 urban AGEB"
+        char cvegeo UK "ENT+MUN+LOC+AGEB"
+        char cve_loc
+        char cve_ageb
+        text loc_name
+        boolean is_city_core
+        numeric area_km2
+        geometry geom "MultiPolygon 6372"
+    }
+    dim_economic_activity {
+        int activity_key PK "1 SCIAN class"
+        char scian_code UK
+        text activity_name
+        char subsector_code
+        text sector_code
+        text sector_name
+        text activity_group "Retail / Services / Other"
+    }
+    dim_business_size {
+        smallint size_key PK "1 DENUE band"
+        text per_ocu_label UK
+        int employees_min
+        int employees_max
+        text size_class
+    }
+    dim_crime_type {
+        int crime_type_key PK "1 crime type"
+        text crime_type UK
+        text crime_type_raw
+        text crime_category
+    }
+    dim_date {
+        int date_key PK "YYYYMMDD"
+        date full_date UK
+        smallint year
+        smallint quarter
+        smallint month
+        smallint day_of_week
+        boolean is_weekend
+    }
+    dim_hour {
+        smallint hour_key PK "-1..23"
+        text hour_label
+        text time_band
+    }
+    dim_source {
+        smallint source_key PK "1 original dataset"
+        text source_code UK
+        text source_name
+        text url
+        text original_grain
+        char sha256
+    }

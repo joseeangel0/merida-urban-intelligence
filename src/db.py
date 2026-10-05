@@ -21,11 +21,22 @@ def get_engine() -> Engine:
 
 
 def run_sql_file(path: Path, engine: Engine | None = None) -> None:
-    """Execute a whole .sql file in a single transaction."""
+    """Execute a whole .sql file in a single transaction, printing server NOTICE/WARNING messages."""
     engine = engine or get_engine()
     sql = Path(path).read_text(encoding="utf-8")
+
+    def show(diag):
+        print(f"  {diag.severity}: {diag.message_primary}")
+
     with engine.begin() as conn:
-        conn.exec_driver_sql(sql)
+        raw = conn.connection.driver_connection
+        raw.add_notice_handler(show)
+        try:
+            # psycopg cursor without parameters: '%' in SQL text/comments is not treated as a placeholder
+            with raw.cursor() as cur:
+                cur.execute(sql)
+        finally:
+            raw.remove_notice_handler(show)
     print(f"[sql] executed {Path(path).name}")
 
 
