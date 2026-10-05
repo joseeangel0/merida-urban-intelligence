@@ -22,7 +22,7 @@ from src.config import SQL_DIR
 TRANSFORM_MODULES = [
     "src.transform.geography",  # ageb.parquet      (Lorena)
     "src.transform.census",     # census_ageb.parquet (Julio)
-    "src.transform.denue",      # business.parquet  (Ricardo)
+    "src.transform.denue",      # business.parquet  (Nora)
     "src.transform.crime",      # crime.parquet     (Valeria)
 ]
 
