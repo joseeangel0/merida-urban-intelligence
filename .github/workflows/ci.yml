@@ -1,0 +1,58 @@
+# Fast checks on every PR: Python code imports cleanly and the SQL scripts run on PostGIS.
+# The full pipeline with INEGI data is validated locally (sql/04_validation.sql), see README §8.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  python:
+    name: Python lint + imports
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt ruff
+      - name: Lint (syntax errors, undefined names, unused imports)
+        run: ruff check --select E9,F63,F7,F82,F401 src
+      - name: Every module imports
+        run: |
+          python - <<'EOF'
+          import importlib, pathlib
+          for path in sorted(pathlib.Path("src").rglob("*.py")):
+              module = ".".join(path.with_suffix("").parts).removesuffix(".__init__")
+              importlib.import_module(module)
+              print("ok", module)
+          EOF
+
+  sql:
+    name: SQL on PostGIS
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: imresamu/postgis:16-3.5
+        env:
+          POSTGRES_DB: merida_dw
+          POSTGRES_USER: merida
+          POSTGRES_PASSWORD: merida
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U merida -d merida_dw"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: cp .env.example .env
+      - name: Create schema and KPI views (twice, to check they are re-runnable)
+        run: |
+          python -m src.pipeline schema views
+          python -m src.pipeline schema views
