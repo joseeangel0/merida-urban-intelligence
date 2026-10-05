@@ -1,0 +1,25 @@
+# Python >= 3.11
+pandas>=2.2
+numpy>=1.26
+geopandas>=1.0
+pyogrio>=0.9
+shapely>=2.0
+pyproj>=3.6
+sqlalchemy>=2.0
+psycopg[binary]>=3.1
+geoalchemy2>=0.15
+python-dotenv>=1.0
+requests>=2.31
+pyarrow>=15.0
+
+# Spatial analytics (Phase 3)
+libpysal>=4.10
+esda>=2.5
+mapclassify>=2.6
+scipy>=1.11
+matplotlib>=3.8
+contextily>=1.5
+
+# Notebooks
+jupyterlab>=4.0
+ipykernel>=6.29

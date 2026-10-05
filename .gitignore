@@ -1,0 +1,17 @@
+# Raw and processed data are reproducible via `python -m src.pipeline download`
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/manifest.json
+data/processed/*
+!data/processed/.gitkeep
+
+# Environment
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+.idea/
+.vscode/

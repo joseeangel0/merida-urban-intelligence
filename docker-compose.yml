@@ -1,0 +1,21 @@
+# PostgreSQL 16 + PostGIS 3.5 (multi-arch image: works on Apple Silicon and x86)
+services:
+  db:
+    image: imresamu/postgis:16-3.5
+    container_name: merida_dw
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-merida_dw}
+      POSTGRES_USER: ${POSTGRES_USER:-merida}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-merida}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-merida} -d ${POSTGRES_DB:-merida_dw}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
