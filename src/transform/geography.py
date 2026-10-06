@@ -97,14 +97,16 @@ def run() -> gpd.GeoDataFrame:
     result = result[AGEB_COLUMNS].reset_index(drop=True)
 
     assert list(result.columns) == AGEB_COLUMNS
-    assert len(result) == 2_431, f"Expected 2,431 urban AGEBs; got {len(result)}"
     assert result["cvegeo"].is_unique, "AGEB cvegeo values must be unique"
-    assert int(result["is_city_core"].sum()) == 2_348
-    assert result["mun_name"].nunique() == 16
     assert result.crs.to_epsg() == 6372
     assert result.geom_type.eq("MultiPolygon").all()
     assert result.geometry.is_valid.all()
-    assert abs(result["area_km2"].sum() - 792.15) <= 0.1
+
+    if CVE_MUN is None:
+        assert len(result) == 2_431, f"Expected 2,431 urban AGEBs; got {len(result)}"
+        assert int(result["is_city_core"].sum()) == 2_348
+        assert result["mun_name"].nunique() == 16
+        assert abs(result["area_km2"].sum() - 792.15) <= 0.1
 
     DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
     result.to_parquet(OUTPUT_FILE, index=False)
