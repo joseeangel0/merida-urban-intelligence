@@ -4,7 +4,6 @@ Author: Valeria Hernández (valnix140405)
 Project: Mexico City Urban Intelligence (Phase 2 — Transformation)
 Contract: docs/team/TEAM_PLAN.md §3.2 and §4.5
 """
-from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
