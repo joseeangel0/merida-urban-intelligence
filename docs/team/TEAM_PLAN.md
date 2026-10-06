@@ -9,7 +9,7 @@ Everything each member needs: what to build, which files you own, the data contr
 | 3 | **Nora Horta** | `strangelove-t` | Economic layer | DENUE profiling, `src/transform/denue.py`, spatial weights, Global Moran + LISA |
 | 4 | **Lorena Pérez** | `ldpl3012` | Geography & integration | geographic-unit decision, `src/transform/geography.py`, `src/transform/spatial.py`, `src/load/load_staging.py`, `sql/02_load.sql`, KPI maps |
 | 5 | **Valeria Hernández** | `valnix140405` | Public-safety layer | crime source record, `src/transform/crime.py`, crime temporal analysis, bivariate Moran, report section 6 |
-| 6 | **Gustavo Fuentes** | _TBD_ | Data quality, KPI queries & findings · report lead | source inventory and data-quality register, contract tests (`tests/`), `sql/05_kpi_queries.sql`, LISA hot-spot analysis by alcaldía, alcaldía comparison, report assembly |
+| 6 | **Gustavo Fuentes** | `Audileleach` | Data quality, KPI queries & findings · report lead | source inventory and data-quality register, contract tests (`tests/`), `sql/05_kpi_queries.sql`, LISA hot-spot analysis by alcaldía, alcaldía comparison, report assembly |
 
 > 🔄 **Scope change — 5 Oct 2026 (D1 evening).** The instructor answered our crime-data request: *no simulated data; with municipal-level crime data the spatial analysis would have to stay at state level; for high granularity use hoyodecrimen.com, but working with Mexico City.* We therefore keep the **urban AGEB** design and move the study area from Mérida to **Mexico City (CDMX, 16 alcaldías)**. Every contract below has been updated (sources, reference values, paths `31 → 09`). The Mérida work already merged (Lorena's assessment, Jose's search log) stays as Phase 1 evidence of the data assessment. **Gustavo Fuentes joins the team** (§4.6) and takes report assembly from Valeria and builds the alcaldía-level and hot-spot analysis on top of Nora's LISA.
 >
@@ -416,7 +416,7 @@ TEAM_PLAN §4.5. Do not modify files owned by others. Commit in small steps.
 
 ### 4.6 Gustavo Fuentes — Data quality, KPI queries & findings · report lead
 
-Joined on D1 evening. Your work is cross-cutting: you check that the pieces fit, prove that every KPI can be queried from the warehouse, run the local spatial analysis and turn everyone's results into the report. **Do D0 setup first (§1) and send Jose your GitHub username** so he can invite you.
+Joined on D1 evening. Your work is cross-cutting: you check that the pieces fit, prove that every KPI can be queried from the warehouse, run the local spatial analysis and turn everyone's results into the report. **Do D0 setup first (§1) and accept the repository invitation** (sent to `Audileleach`).
 
 **Phase 1 (D2 morning)** — source inventory and data-quality register
 - `docs/data_sources.md`:
