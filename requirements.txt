@@ -23,3 +23,6 @@ contextily>=1.5
 # Notebooks
 jupyterlab>=4.0
 ipykernel>=6.29
+
+# Tests
+pytest>=8.0
