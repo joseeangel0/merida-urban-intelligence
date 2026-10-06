@@ -6,12 +6,12 @@ Everything each member needs: what to build, which files you own, the data contr
 |---|---|---|---|---|
 | 1 | **Jose Pech** | `joseeangel0` | Repo lead · DW architect | repo setup, `sql/01_schema.sql`, model diagram, `sql/03_views.sql`, `sql/04_validation.sql`, `src/analysis/data.py`, README integration |
 | 2 | **Julio de Aquino** | `pyrawn` | Demographic layer | Census profiling, `src/transform/census.py`, correlation analysis |
-| 3 | **Nora Horta** | `strangelove-t` | Economic layer | DENUE profiling, `src/transform/denue.py`, spatial weights, Global Moran |
+| 3 | **Nora Horta** | `strangelove-t` | Economic layer | DENUE profiling, `src/transform/denue.py`, spatial weights, Global Moran + LISA |
 | 4 | **Lorena Pérez** | `ldpl3012` | Geography & integration | geographic-unit decision, `src/transform/geography.py`, `src/transform/spatial.py`, `src/load/load_staging.py`, `sql/02_load.sql`, KPI maps |
 | 5 | **Valeria Hernández** | `valnix140405` | Public-safety layer | crime source record, `src/transform/crime.py`, crime temporal analysis, bivariate Moran, report section 6 |
-| 6 | **Gustavo Fuentes** | _TBD_ | Data quality, KPI queries & findings · report lead | source inventory and data-quality register, contract tests (`tests/`), `sql/05_kpi_queries.sql`, LISA, alcaldía comparison, report assembly |
+| 6 | **Gustavo Fuentes** | _TBD_ | Data quality, KPI queries & findings · report lead | source inventory and data-quality register, contract tests (`tests/`), `sql/05_kpi_queries.sql`, LISA hot-spot analysis by alcaldía, alcaldía comparison, report assembly |
 
-> 🔄 **Scope change — 5 Oct 2026 (D1 evening).** The instructor answered our crime-data request: *no simulated data; with municipal-level crime data the spatial analysis would have to stay at state level; for high granularity use hoyodecrimen.com, but working with Mexico City.* We therefore keep the **urban AGEB** design and move the study area from Mérida to **Mexico City (CDMX, 16 alcaldías)**. Every contract below has been updated (sources, reference values, paths `31 → 09`). The Mérida work already merged (Lorena's assessment, Jose's search log) stays as Phase 1 evidence of the data assessment. **Gustavo Fuentes joins the team** (§4.6) and takes LISA from Nora and report assembly from Valeria.
+> 🔄 **Scope change — 5 Oct 2026 (D1 evening).** The instructor answered our crime-data request: *no simulated data; with municipal-level crime data the spatial analysis would have to stay at state level; for high granularity use hoyodecrimen.com, but working with Mexico City.* We therefore keep the **urban AGEB** design and move the study area from Mérida to **Mexico City (CDMX, 16 alcaldías)**. Every contract below has been updated (sources, reference values, paths `31 → 09`). The Mérida work already merged (Lorena's assessment, Jose's search log) stays as Phase 1 evidence of the data assessment. **Gustavo Fuentes joins the team** (§4.6) and takes report assembly from Valeria and builds the alcaldía-level and hot-spot analysis on top of Nora's LISA.
 >
 > **If you already ran the setup:** `git pull`, then `python -m src.pipeline download` (new keys `*_09` and `crime_fgj_2024`). The old Yucatán folders in `data/raw/` (`denue_31`, `census_ageb_2020`, `marco_geo_2020`) can be deleted.
 
@@ -255,10 +255,11 @@ win conditions in TEAM_PLAN §4.2. Do not modify files owned by other members. C
 - `run()`: whole-state DENUE → `spatial.points_from_latlon` → `spatial.assign_ageb` (the **geometry** decides membership, not `cve_mun`) → `cvegeo_reported = '31' + cve_mun + cve_loc + ageb` → `alta_date` from `fecha_alta` (`YYYY-MM` → 1st of month) → write `business.parquet` and `economic_activity.parquet`.
 - Data dictionary for `dim_economic_activity`, `dim_business_size`, `fact_business`.
 
-**Phase 3 (D3)** — `src/analysis/spatial_weights.py` + `notebooks/32_global_moran.ipynb`
+**Phase 3 (D3)** — `src/analysis/spatial_weights.py` + `notebooks/32_global_moran_lisa.ipynb`
 - `build_weights(gdf, kind="queen" | "knn", k=6)`: row-standardised; for Queen attach islands to nearest neighbour (`libpysal.weights.attach_islands`). Shared with Valeria and Gustavo — **publish it first thing on D3** (or late D2), they depend on it.
 - Global Moran's I (esda, 999 permutations) for ≥ 2 indicators (suggested 4: business density, crime rate, population density, PEA rate), Queen vs KNN-6 table, Moran scatterplots.
-- LISA moved to Gustavo (§4.6); share your Queen/KNN results with him so both notebooks use the same sample.
+- `local_clusters(gdf, column, w, permutations=999, alpha=0.05, seed=42)` in the same module: Local Moran's I returning one label per row (`HH`, `LL`, `HL`, `LH`, `ns`) plus `p_sim`, aligned with the input rows. **Gustavo reuses it** (§4.6), so publish it together with `build_weights`.
+- LISA for ≥ 2 indicators: cluster maps (HH, LL, HL, LH, not significant) to `outputs/maps/`, list of significant AGEBs.
 
 **AI prompt (Phase 1–2):**
 ```
@@ -280,11 +281,12 @@ Add asserts for the win conditions in TEAM_PLAN §4.3. Do not modify files owned
 - [ ] Agreement `cvegeo == cvegeo_reported` ≥ 99.5 % (reference 99.8 %), mismatches explained (boundary points).
 - [ ] Every `scian_code` in `business.parquet` exists in `economic_activity.parquet`; every `per_ocu_label` matches `dw.dim_business_size`.
 - [ ] Retail ≈ 211.4 k establishments; the sector table is in the notebook.
-- [ ] Moran notebook: I, E[I], z, pseudo p-value per indicator, Queen vs KNN comparison, interpretation.
+- [ ] Moran notebook: I, E[I], z, pseudo p-value per indicator, Queen vs KNN comparison, interpretation; LISA maps saved.
+- [ ] `build_weights` and `local_clusters` merged by D3 12:00 (Valeria and Gustavo depend on them).
 
 **Suggested commits:** `analysis(denue): profiling notebook` · `feat(denue): SCIAN sector mapping` · `feat(denue): DENUE transform with spatial join` · `docs(denue): data dictionary` · `feat(spatial): spatial weights builder` · `analysis(spatial): global Moran` · `analysis(spatial): LISA clusters` · `docs(report): KPIs and spatial analysis section`.
 
-**README/report:** README §2 economic row, §4 DENUE decisions, §7 Global Moran; report section 4 "Key KPIs and spatial analysis".
+**README/report:** README §2 economic row, §4 DENUE decisions, §7 Moran/LISA; report section 4 "Key KPIs and spatial analysis".
 
 ---
 
@@ -432,16 +434,16 @@ Joined on D1 evening. Your work is cross-cutting: you check that the pieces fit,
 - Review at least 2 teammates' PRs against the contract (comment; do not edit their files).
 
 **Phase 3 (D3)** — local spatial analysis and area comparison
-- `notebooks/34_lisa_clusters.ipynb` (data from `load_kpis()` only, weights from Nora's `build_weights`, same sample as her Global Moran):
-  - Local Moran's I (`esda.Moran_Local`, 999 permutations, α = 0.05) for **≥ 2 indicators** (suggested: business density, crime rate, population density);
-  - cluster maps HH / LL / HL / LH / not significant with alcaldía boundaries to `outputs/maps/`;
-  - table of significant AGEBs per indicator and cluster type, with alcaldía and `loc_name`;
-  - interpretation of hot spots and spatial outliers, the neighbourhood rule, and the multiple-testing caveat (pseudo p-values on 2,348 units).
+- `notebooks/34_lisa_hotspots.ipynb` — builds on Nora's LISA, does not repeat it. Data from `load_kpis()` only; clusters from Nora's `build_weights` + `local_clusters` on the same sample and indicators:
+  - **where the clusters are**: count and share of HH / LL / HL / LH AGEBs per alcaldía and indicator (table + one map with alcaldía boundaries to `outputs/maps/`);
+  - **do hot spots coincide?** cross-tab of business-density vs crime-rate cluster labels (e.g. how many business HH AGEBs are also crime HH), with the list of overlapping AGEBs;
+  - **robustness**: share of AGEBs that keep the same label with Queen vs KNN-6 weights;
+  - interpretation without causal language, plus the multiple-testing caveat (pseudo p-values on 2,348 units).
 - `notebooks/35_alcaldia_comparison.ipynb`: compare the 16 alcaldías — population, densities, businesses per 1k, dominant sector, crime rate, crimes per 100 businesses (aggregated correctly: sums then ratios), a ranking table and one small-multiples or bar figure to `outputs/figures/`; centre (Cuauhtémoc, Benito Juárez, Miguel Hidalgo) vs periphery.
-- README §7: LISA subsection and area comparison.
+- README §7: hot-spot overlap and area comparison (next to Nora's LISA subsection).
 
 **Report lead (D3)**
-- Collect every `report/sections/*.md`, write `report/sections/4b_lisa.md` (LISA results) and `report/sections/5_findings.md` (main findings: 1–2 from each member + your LISA and alcaldía results, each backed by a map/figure).
+- Collect every `report/sections/*.md`, write `report/sections/5_findings.md` (main findings: 1–2 from each member + your hot-spot and alcaldía results, each backed by a map/figure).
 - Assemble `report/technical_report.pdf` (4–6 pages, all six sections, ≥ 3 maps/figures, figure numbers consistent). Check that it does **not** repeat the README. Deadlines for teammates' sections: D3 18:00.
 
 **AI prompt (Phase 1–2):**
@@ -465,10 +467,11 @@ Do not modify files owned by other members (TEAM_PLAN §4). Commit in small step
 **AI prompt (Phase 3):**
 ```
 Continue as Gustavo's assistant. Read TEAM_PLAN §3.1 (spatial weights), src/analysis/data.py and
-src/analysis/spatial_weights.py. notebooks/34_lisa_clusters.ipynb: load_kpis() only; build Queen weights with
-build_weights on the same sample Nora uses; esda.Moran_Local with 999 permutations for >= 2 indicators; cluster
-maps (HH, LL, HL, LH, not significant) with alcaldía boundaries saved to outputs/maps/; table of significant AGEBs;
-interpretation without causal language. notebooks/35_alcaldia_comparison.ipynb: aggregate v_kpi_ageb by mun_name
+src/analysis/spatial_weights.py and Nora's notebooks/32_global_moran_lisa.ipynb. notebooks/34_lisa_hotspots.ipynb:
+load_kpis() only; reuse build_weights and local_clusters (do not reimplement LISA) on the same sample and indicators
+as Nora; tables of cluster counts/shares per alcaldía, a cross-tab of business-density vs crime-rate cluster labels
+with the overlapping AGEBs, and the share of AGEBs whose label is stable between Queen and KNN-6; one map with
+alcaldía boundaries to outputs/maps/; interpretation without causal language. notebooks/35_alcaldia_comparison.ipynb: aggregate v_kpi_ageb by mun_name
 (sums then ratios), ranking table and one figure to outputs/figures/.
 ```
 
@@ -476,13 +479,13 @@ interpretation without causal language. notebooks/35_alcaldia_comparison.ipynb: 
 - [ ] `docs/data_sources.md` lists all 4 sources with licence and SHA-256; data-quality register has ≥ 8 issues with counts.
 - [ ] `pytest tests/` passes (or skips) on a clean checkout and passes after `python -m src.pipeline transform`.
 - [ ] `sql/05_kpi_queries.sql` runs without errors on the populated DW and covers all 14 KPIs of README §6.
-- [ ] LISA notebook: ≥ 2 indicators, cluster maps saved, significant-AGEB table, neighbourhood rule explained.
+- [ ] Hot-spot notebook: clusters per alcaldía, business × crime overlap table, Queen vs KNN stability, one map saved; reuses Nora's functions.
 - [ ] Alcaldía comparison: 16 rows, ratios computed from sums, one figure saved.
 - [ ] `report/technical_report.pdf` 4–6 pages, ≥ 3 maps/figures, all six required sections.
 
-**Suggested commits:** `docs(repo): source inventory` · `docs(repo): data-quality register` · `analysis(geo): cross-source integration check` · `test(dw): processed-file contract tests` · `sql(kpi): KPI demonstration queries` · `sql(kpi): KPIs by alcaldía` · `analysis(spatial): LISA clusters` · `analysis(kpi): alcaldía comparison` · `docs(report): findings section` · `docs(report): technical report PDF`.
+**Suggested commits:** `docs(repo): source inventory` · `docs(repo): data-quality register` · `analysis(geo): cross-source integration check` · `test(dw): processed-file contract tests` · `sql(kpi): KPI demonstration queries` · `sql(kpi): KPIs by alcaldía` · `analysis(spatial): LISA hot spots by alcaldía` · `analysis(spatial): business and crime hot-spot overlap` · `analysis(kpi): alcaldía comparison` · `docs(report): findings section` · `docs(report): technical report PDF`.
 
-**README/report:** README §7 LISA + area comparison, §10 data-quality summary (from the register); report sections 4b and 5 + assembly.
+**README/report:** README §7 hot-spot overlap + area comparison, §10 data-quality summary (from the register); report section 5 + assembly.
 
 ---
 
@@ -495,7 +498,7 @@ Each member writes their section as `report/sections/<n>_<topic>.md` (own commit
 | 1. Problem and data sources | Julio | Why, which sources, temporal coverage of each |
 | 2. Geographic integration strategy | Lorena | Unit choice, CRS, point-in-polygon results (kept/dropped %) |
 | 3. Data Warehouse architecture | Jose | Diagram, grains, pipeline in one figure |
-| 4. Key KPIs and spatial analysis | Nora (+ Gustavo: `4b_lisa.md`) | KPI table, Global Moran; LISA clusters |
+| 4. Key KPIs and spatial analysis | Nora | KPI table, Moran/LISA results |
 | 5. Main findings (with maps) | Gustavo (each member sends 1–2 findings from their analysis) | Maps/figures + interpretation |
 | 6. Limitations and cautions | Valeria | Temporal mismatch, suppression, MAUP, data origin, association ≠ causation |
 
