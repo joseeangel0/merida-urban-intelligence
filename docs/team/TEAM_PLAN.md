@@ -136,7 +136,7 @@ def assign_ageb(points: gpd.GeoDataFrame) -> gpd.GeoDataFrame: ...
 | DENUE rows CDMX | 462,732, 0 duplicated `id`, 931 SCIAN classes |
 | DENUE points inside CDMX urban AGEBs | **461,231** (retail SCIAN 46: 211,431) |
 | Agreement spatial-join AGEB vs DENUE's own `cve_mun+cve_loc+ageb` | **99.8 %** (99.84) |
-| Crime rows (FGJ 2024 file) / offence in 2024 and not `HECHO NO DELICTIVO` / inside urban AGEBs | 138,630 / 119,666 / ≈ 112,285 (before removing ≈ 680 exact duplicates) |
+| Crime rows (FGJ 2024 file) / offence in 2024 and not `HECHO NO DELICTIVO` / inside urban AGEBs | 138,630 / 119,666 / ≈ 112,285 (the ≈ 680 rows that repeat `delito`, date and hour have no coordinates, so dedup does not change this count) |
 | Queen weights, city core | 2,348 units, 3 components, 1 island, mean 6.0 neighbours |
 
 ---
@@ -376,7 +376,7 @@ Then `notebooks/13_profile_crime.ipynb`:
 - The search log above + instructor reply.
 
 **Phase 2 (D2)** — `src/transform/crime.py`
-- `run()`: read `data/raw/crime_fgj_2024/carpetasFGJ_2024.csv` (dtype `str`) → `source_incident_id` (§3.1) → filters (§3.1) → harmonise crime types to English (`crime_type` from `delito`, `crime_category` from `categoria_delito`: e.g. `Property` / `Violent` / `Sexual` / `Other`, documented in a mapping table) → `incident_date` from `fecha_hecho`, `incident_hour` from `hora_hecho` (−1 if unknown) → `points_from_latlon` → `assign_ageb` → `crime.parquet` (contract §3.2). Remove exact duplicates (same `delito`, date, hour, coordinates) and document how many.
+- `run()`: read `data/raw/crime_fgj_2024/crime_fgj_2024.csv` (dtype `str`; the downloader stores the published `carpetasFGJ_2024.csv` under the source key) → `source_incident_id` (§3.1) → filters (§3.1) → harmonise crime types to English (`crime_type` from `delito`, `crime_category` from the accent-normalised `delito`, one category per `crime_type` (`categoria_delito` is `DELITO DE BAJO IMPACTO` for 87 % of rows): e.g. `Property` / `Violent` / `Sexual` / `Other`, documented in a mapping table) → `incident_date` from `fecha_hecho`, `incident_hour` from `hora_hecho` (−1 if unknown) → `points_from_latlon` → `assign_ageb` → `crime.parquet` (contract §3.2). Remove exact duplicates among rows with valid coordinates (same `delito`, date, hour, coordinates; pandas treats empty coordinates as equal, so dedup after the coordinate filter) and document how many.
 - Data dictionary for `dim_crime_type`, `fact_crime_incident`.
 
 **Phase 3 (D3)** — `notebooks/33_crime_patterns_bivariate.ipynb`
@@ -389,13 +389,14 @@ Then `notebooks/13_profile_crime.ipynb`:
 You are helping Valeria Hernández in the repository merida-urban-intelligence (now a Mexico City data warehouse).
 Read docs/team/TEAM_PLAN.md (sections 0, 3 and 4.5), sql/01_schema.sql (dim_crime_type, fact_crime_incident),
 src/config.py and src/transform/spatial.py.
-Phase 1: notebooks/13_profile_crime.ipynb profiling data/raw/crime_fgj_2024/carpetasFGJ_2024.csv (dtype=str):
+Phase 1: notebooks/13_profile_crime.ipynb profiling data/raw/crime_fgj_2024/crime_fgj_2024.csv (dtype=str):
 explain fecha_inicio vs fecha_hecho, profile coordinates, offence years, categoria_delito, HECHO NO DELICTIVO,
 duplicates and unknown hours; apply the filters of TEAM_PLAN §3.1 with counts; run spatial.assign_ageb and end
 with a funnel table. Include the search log and the instructor reply from §4.5 as markdown.
 Phase 2: src/transform/crime.py with run() that applies the same rules, builds source_incident_id as
-'fgj2024-<row number>', harmonises crime types to English with a crime_category (mapping table in the code),
-parses incident_date and incident_hour (-1 when unknown), removes exact duplicates (report how many), builds
+'fgj2024-<row number>', harmonises crime types to English with one crime_category per crime_type (normalise
+accents first; mapping table in the code),
+parses incident_date and incident_hour (-1 when unknown), removes exact duplicates among geolocated rows (report how many), builds
 points with spatial.points_from_latlon, assigns AGEBs with spatial.assign_ageb and writes
 data/processed/crime.parquet with EXACTLY the contract columns. Add asserts for the win conditions in
 TEAM_PLAN §4.5. Do not modify files owned by others. Commit in small steps.
