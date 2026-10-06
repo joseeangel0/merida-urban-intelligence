@@ -14,9 +14,8 @@ from src.config import (
     CRS_SOURCE_LATLON,
     DATA_PROCESSED,
     DATA_RAW,
-    LATLON_BBOX,
 )
-from src.transform.spatial import assign_ageb
+from src.transform.spatial import assign_ageb, points_from_latlon
 
 RAW_FILE = DATA_RAW / "crime_fgj_2024" / "crime_fgj_2024.csv"
 FALLBACK_RAW_FILE = DATA_RAW / "crime_fgj_2024.csv"
@@ -135,32 +134,6 @@ def _parse_hour(val: str) -> int:
         return -1
 
 
-def _points_from_latlon(df: pd.DataFrame, lat_col: str, lon_col: str) -> gpd.GeoDataFrame:
-    """Validate coordinates against CDMX bounds and reproject to EPSG:6372."""
-    missing = {lat_col, lon_col}.difference(df.columns)
-    if missing:
-        raise KeyError(f"Missing coordinate column(s): {', '.join(sorted(missing))}")
-
-    points = df.copy()
-    points[lat_col] = pd.to_numeric(points[lat_col], errors="coerce")
-    points[lon_col] = pd.to_numeric(points[lon_col], errors="coerce")
-
-    bbox = LATLON_BBOX
-    valid = (
-        points[lat_col].between(bbox["lat_min"], bbox["lat_max"], inclusive="both")
-        & points[lon_col].between(bbox["lon_min"], bbox["lon_max"], inclusive="both")
-        & points[lat_col].ne(0)
-        & points[lon_col].ne(0)
-    )
-    dropped = int((~valid).sum())
-    points = points.loc[valid].copy()
-    print(f"[crime] Dropped {dropped} invalid/out-of-CDMX coordinates from {len(df)} rows.")
-
-    geometry = gpd.points_from_xy(points[lon_col], points[lat_col])
-    result = gpd.GeoDataFrame(points, geometry=geometry, crs=CRS_SOURCE_LATLON)
-    return result.to_crs(CRS_PROJECTED)
-
-
 def run() -> gpd.GeoDataFrame:
     """Read FGJ CDMX 2024 crime file, apply business filters, assign AGEBs, and write crime.parquet."""
     raw_path = RAW_FILE if RAW_FILE.exists() else FALLBACK_RAW_FILE
@@ -184,8 +157,8 @@ def run() -> gpd.GeoDataFrame:
     df = df[df["categoria_delito"] != "HECHO NO DELICTIVO"].copy()
     print(f"[crime] Filtered out 'HECHO NO DELICTIVO': {len(df):,} incidents.")
 
-    # 4. Coordinate validation and reprojection to EPSG:6372
-    points_gdf = _points_from_latlon(df, "latitud", "longitud")
+    # 4. Coordinate validation and reprojection to EPSG:6372 via shared spatial helper
+    points_gdf = points_from_latlon(df, "latitud", "longitud")
 
     # 5. Remove exact duplicates among geolocated records
     dup_mask = points_gdf.duplicated(subset=["delito", "fecha_hecho", "hora_hecho", "latitud", "longitud"])
