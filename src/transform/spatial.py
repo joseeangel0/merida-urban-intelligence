@@ -73,6 +73,6 @@ def assign_ageb(points: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     kept = len(result)
     percentage = kept / total * 100 if total else 0.0
     print(f"kept {kept} / {total} ({percentage:.1f}%)")
-    assert len(result) == len(matches)
+    assert kept + int(joined["index_right"].isna().sum()) == total
     assert result["cvegeo"].notna().all()
     return result

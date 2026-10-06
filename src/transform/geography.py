@@ -11,6 +11,7 @@ from src.config import (
     CVE_MUN,
     DATA_PROCESSED,
     DATA_RAW,
+    ROOT,
 )
 
 MARCO_GEO_DIR = DATA_RAW / "marco_geo_2020_09" / "conjunto_de_datos"
@@ -50,7 +51,7 @@ def _filter_state(frame: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 def run() -> gpd.GeoDataFrame:
-    """Write and return the 2,431 urban AGEB polygons for Mexico City."""
+    """Write and return the urban AGEB polygons for the configured scope (2,431 for all of CDMX)."""
     ageb = _filter_state(_read_projected(AGEB_FILE))
     localities = _filter_state(_read_projected(LOCALITY_FILE))
     municipalities = _filter_state(_read_projected(MUNICIPALITY_FILE))
@@ -97,19 +98,22 @@ def run() -> gpd.GeoDataFrame:
     result = result[AGEB_COLUMNS].reset_index(drop=True)
 
     assert list(result.columns) == AGEB_COLUMNS
-    assert len(result) == 2_431, f"Expected 2,431 urban AGEBs; got {len(result)}"
     assert result["cvegeo"].is_unique, "AGEB cvegeo values must be unique"
-    assert int(result["is_city_core"].sum()) == 2_348
-    assert result["mun_name"].nunique() == 16
     assert result.crs.to_epsg() == 6372
     assert result.geom_type.eq("MultiPolygon").all()
     assert result.geometry.is_valid.all()
-    assert abs(result["area_km2"].sum() - 792.15) <= 0.1
+
+    if CVE_MUN is None:
+        assert len(result) == 2_431, f"Expected 2,431 urban AGEBs; got {len(result)}"
+        assert int(result["is_city_core"].sum()) == 2_348
+        assert result["mun_name"].nunique() == 16
+        assert abs(result["area_km2"].sum() - 792.15) <= 0.1
 
     DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
     result.to_parquet(OUTPUT_FILE, index=False)
+    rel_path = OUTPUT_FILE.relative_to(ROOT)
     print(
-        f"Wrote {len(result):,} urban AGEBs to {OUTPUT_FILE} "
+        f"Wrote {len(result):,} urban AGEBs to {rel_path} "
         f"({result['area_km2'].sum():.4f} km²; EPSG:{result.crs.to_epsg()})"
     )
     return result
