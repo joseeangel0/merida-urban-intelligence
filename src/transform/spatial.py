@@ -2,13 +2,9 @@
 import geopandas as gpd
 import pandas as pd
 
-from src.config import CRS_PROJECTED, CRS_SOURCE_LATLON, DATA_PROCESSED
+from src.config import CRS_PROJECTED, CRS_SOURCE_LATLON, DATA_PROCESSED, LATLON_BBOX
 
 AGEB_FILE = DATA_PROCESSED / "ageb.parquet"
-YUCATAN_BOUNDS = {
-    "longitude": (-92.0, -86.0),
-    "latitude": (19.0, 22.5),
-}
 
 
 def load_ageb() -> gpd.GeoDataFrame:
@@ -22,13 +18,15 @@ def load_ageb() -> gpd.GeoDataFrame:
         raise ValueError(f"Expected AGEB polygons in EPSG:6372; got {ageb.crs}")
     if "cvegeo" not in ageb.columns or "geometry" not in ageb.columns:
         raise ValueError("AGEB parquet must contain cvegeo and geometry columns")
+    if not ageb["cvegeo"].is_unique:
+        raise ValueError("AGEB parquet cvegeo values must be unique")
     return ageb
 
 
 def points_from_latlon(
     df: pd.DataFrame, lat_col: str, lon_col: str
 ) -> gpd.GeoDataFrame:
-    """Validate Yucatán coordinates and return points reprojected to EPSG:6372."""
+    """Validate configured-area coordinates and reproject points to EPSG:6372."""
     missing = {lat_col, lon_col}.difference(df.columns)
     if missing:
         raise KeyError(f"Missing coordinate column(s): {', '.join(sorted(missing))}")
@@ -36,17 +34,15 @@ def points_from_latlon(
     points = df.copy()
     points[lat_col] = pd.to_numeric(points[lat_col], errors="coerce")
     points[lon_col] = pd.to_numeric(points[lon_col], errors="coerce")
-    min_lon, max_lon = YUCATAN_BOUNDS["longitude"]
-    min_lat, max_lat = YUCATAN_BOUNDS["latitude"]
     valid = (
-        points[lat_col].between(min_lat, max_lat, inclusive="both")
-        & points[lon_col].between(min_lon, max_lon, inclusive="both")
+        points[lat_col].between(LATLON_BBOX["lat_min"], LATLON_BBOX["lat_max"])
+        & points[lon_col].between(LATLON_BBOX["lon_min"], LATLON_BBOX["lon_max"])
         & points[lat_col].ne(0)
         & points[lon_col].ne(0)
     )
     dropped = int((~valid).sum())
     points = points.loc[valid].copy()
-    print(f"Dropped {dropped} invalid/out-of-Yucatán coordinates from {len(df)} rows.")
+    print(f"Dropped {dropped} invalid/out-of-study-area coordinates from {len(df)} rows.")
 
     geometry = gpd.points_from_xy(points[lon_col], points[lat_col])
     result = gpd.GeoDataFrame(points, geometry=geometry, crs=CRS_SOURCE_LATLON)
@@ -77,5 +73,6 @@ def assign_ageb(points: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     kept = len(result)
     percentage = kept / total * 100 if total else 0.0
     print(f"kept {kept} / {total} ({percentage:.1f}%)")
-    assert len(result) == kept
+    assert len(result) == len(matches)
+    assert result["cvegeo"].notna().all()
     return result
