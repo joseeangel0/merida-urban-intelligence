@@ -376,7 +376,7 @@ Then `notebooks/13_profile_crime.ipynb`:
 - The search log above + instructor reply.
 
 **Phase 2 (D2)** — `src/transform/crime.py`
-- `run()`: read `data/raw/crime_fgj_2024/carpetasFGJ_2024.csv` (dtype `str`) → `source_incident_id` (§3.1) → filters (§3.1) → harmonise crime types to English (`crime_type` from `delito`, `crime_category` from `categoria_delito`: e.g. `Property` / `Violent` / `Sexual` / `Other`, documented in a mapping table) → `incident_date` from `fecha_hecho`, `incident_hour` from `hora_hecho` (−1 if unknown) → `points_from_latlon` → `assign_ageb` → `crime.parquet` (contract §3.2). Remove exact duplicates (same `delito`, date, hour, coordinates) and document how many.
+- `run()`: read `data/raw/crime_fgj_2024/crime_fgj_2024.csv` (dtype `str`; the downloader stores the published `carpetasFGJ_2024.csv` under the source key) → `source_incident_id` (§3.1) → filters (§3.1) → harmonise crime types to English (`crime_type` from `delito`, `crime_category` from `categoria_delito`: e.g. `Property` / `Violent` / `Sexual` / `Other`, documented in a mapping table) → `incident_date` from `fecha_hecho`, `incident_hour` from `hora_hecho` (−1 if unknown) → `points_from_latlon` → `assign_ageb` → `crime.parquet` (contract §3.2). Remove exact duplicates (same `delito`, date, hour, coordinates) and document how many.
 - Data dictionary for `dim_crime_type`, `fact_crime_incident`.
 
 **Phase 3 (D3)** — `notebooks/33_crime_patterns_bivariate.ipynb`
@@ -389,7 +389,7 @@ Then `notebooks/13_profile_crime.ipynb`:
 You are helping Valeria Hernández in the repository merida-urban-intelligence (now a Mexico City data warehouse).
 Read docs/team/TEAM_PLAN.md (sections 0, 3 and 4.5), sql/01_schema.sql (dim_crime_type, fact_crime_incident),
 src/config.py and src/transform/spatial.py.
-Phase 1: notebooks/13_profile_crime.ipynb profiling data/raw/crime_fgj_2024/carpetasFGJ_2024.csv (dtype=str):
+Phase 1: notebooks/13_profile_crime.ipynb profiling data/raw/crime_fgj_2024/crime_fgj_2024.csv (dtype=str):
 explain fecha_inicio vs fecha_hecho, profile coordinates, offence years, categoria_delito, HECHO NO DELICTIVO,
 duplicates and unknown hours; apply the filters of TEAM_PLAN §3.1 with counts; run spatial.assign_ageb and end
 with a funnel table. Include the search log and the instructor reply from §4.5 as markdown.
