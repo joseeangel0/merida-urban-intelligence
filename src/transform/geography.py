@@ -11,6 +11,7 @@ from src.config import (
     CVE_MUN,
     DATA_PROCESSED,
     DATA_RAW,
+    ROOT,
 )
 
 MARCO_GEO_DIR = DATA_RAW / "marco_geo_2020_09" / "conjunto_de_datos"
@@ -110,8 +111,9 @@ def run() -> gpd.GeoDataFrame:
 
     DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
     result.to_parquet(OUTPUT_FILE, index=False)
+    rel_path = OUTPUT_FILE.relative_to(ROOT)
     print(
-        f"Wrote {len(result):,} urban AGEBs to {OUTPUT_FILE} "
+        f"Wrote {len(result):,} urban AGEBs to {rel_path} "
         f"({result['area_km2'].sum():.4f} km²; EPSG:{result.crs.to_epsg()})"
     )
     return result
