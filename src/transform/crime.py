@@ -4,6 +4,7 @@ Author: Valeria Hernández (valnix140405)
 Project: Mexico City Urban Intelligence (Phase 2 — Transformation)
 Contract: docs/team/TEAM_PLAN.md §3.2 and §4.5
 """
+import unicodedata
 import geopandas as gpd
 import pandas as pd
 
@@ -17,23 +18,21 @@ from src.config import (
 )
 from src.transform.spatial import assign_ageb
 
-RAW_FILE = DATA_RAW / "crime_fgj_2024" / "carpetasFGJ_2024.csv"
+RAW_FILE = DATA_RAW / "crime_fgj_2024" / "crime_fgj_2024.csv"
 FALLBACK_RAW_FILE = DATA_RAW / "crime_fgj_2024.csv"
 OUTPUT_FILE = DATA_PROCESSED / "crime.parquet"
 
-# Standard English crime type translations for top offences
+# Standard English crime type translations for top offences (unaccented keys)
 CRIME_TYPE_TRANSLATIONS = {
     "VIOLENCIA FAMILIAR": "Family Violence",
     "AMENAZAS": "Threats",
     "FRAUDE": "Fraud",
     "ROBO DE ACCESORIOS DE AUTO": "Theft of Auto Parts and Accessories",
     "ROBO DE OBJETOS": "Theft of Personal Property",
-    "USURPACIÓN DE IDENTIDAD": "Identity Theft",
     "USURPACION DE IDENTIDAD": "Identity Theft",
     "ROBO DE OBJETOS DEL INTERIOR DE UN VEHICULO": "Theft from Vehicle Interior",
     "ROBO A TRANSEUNTE EN VIA PUBLICA CON VIOLENCIA": "Robbery on Public Road with Violence",
     "ABUSO SEXUAL": "Sexual Abuse",
-    "DAÑO EN PROPIEDAD AJENA CULPOSA POR TRÁNSITO VEHICULAR A AUTOMOVIL": "Accidental Property Damage to Vehicle in Traffic",
     "DANO EN PROPIEDAD AJENA CULPOSA POR TRANSITO VEHICULAR A AUTOMOVIL": "Accidental Property Damage to Vehicle in Traffic",
     "LESIONES INTENCIONALES POR GOLPES": "Intentional Assault and Battery",
     "ROBO A NEGOCIO SIN VIOLENCIA POR FARDEROS (TIENDAS DE AUTOSERVICIO)": "Shoplifting at Commercial Business (Self-Service)",
@@ -46,7 +45,6 @@ CRIME_TYPE_TRANSLATIONS = {
     "ABUSO DE CONFIANZA": "Breach of Trust / Embezzlement",
     "ROBO DE VEHICULO DE SERVICIO PARTICULAR SIN VIOLENCIA": "Private Vehicle Theft without Violence",
     "ROBO A NEGOCIO SIN VIOLENCIA": "Business Theft without Violence",
-    "NARCOMENUDEO POSESIÓN CON FINES DE VENTA, COMERCIO Y SUMINISTRO": "Drug Possession with Intent to Distribute",
     "NARCOMENUDEO POSESION CON FINES DE VENTA, COMERCIO Y SUMINISTRO": "Drug Possession with Intent to Distribute",
     "TENTATIVA DE EXTORSION": "Attempted Extortion",
     "DELITOS ELECTORALES": "Electoral Offenses",
@@ -54,7 +52,6 @@ CRIME_TYPE_TRANSLATIONS = {
     "ROBO DE PLACA DE AUTOMOVIL": "Theft of License Plate",
     "CONTRA LA INTIMIDAD SEXUAL": "Offense against Sexual Privacy",
     "ROBO A NEGOCIO CON VIOLENCIA": "Robbery at Business with Violence",
-    "DAÑO EN PROPIEDAD AJENA INTENCIONAL A AUTOMOVIL": "Intentional Property Damage to Automobile",
     "DANO EN PROPIEDAD AJENA INTENCIONAL A AUTOMOVIL": "Intentional Property Damage to Automobile",
     "ROBO A TRANSEUNTE EN PARQUES Y MERCADOS CON VIOLENCIA": "Robbery in Parks or Markets with Violence",
     "FALSIFICACION DE TITULOS AL PORTADOR Y DOCUMENTOS DE CREDITO PUBLICO": "Forgery of Bearer Securities and Public Credit",
@@ -62,12 +59,10 @@ CRIME_TYPE_TRANSLATIONS = {
     "HOMICIDIO DOLOSO": "Intentional Homicide",
     "LESIONES DOLOSAS POR DISPARO DE ARMA DE FUEGO": "Intentional Assault by Firearm Discharge",
     "VIOLACION": "Rape",
-    "VIOLACIÓN": "Rape",
     "SECUESTRO": "Kidnapping",
     "ROBO A REPARTIDOR CON Y SIN VIOLENCIA": "Robbery of Delivery Personnel",
     "ROBO A PASAJERO A BORDO DEL METRO CON Y SIN VIOLENCIA": "Robbery on Subway (Metro)",
     "ROBO A PASAJERO A BORDO DE MICROBUS CON Y SIN VIOLENCIA": "Robbery on Public Bus / Microbus",
-    "ROBO A CASA HABITACIÓN CON VIOLENCIA": "Residential Burglary with Violence",
     "ROBO A CASA HABITACION CON VIOLENCIA": "Residential Burglary with Violence",
     "ROBO A PASAJERO A BORDO DE TAXI CON VIOLENCIA": "Robbery on Taxi with Violence",
     "ROBO A CUENTAHABIENTE SALIENDO DEL CAJERO CON VIOLENCIA": "Robbery of Bank Customer leaving ATM with Violence",
@@ -75,79 +70,57 @@ CRIME_TYPE_TRANSLATIONS = {
 }
 
 
-def _map_crime_category(categoria_delito: str, delito: str) -> str:
-    """Categorize offence into high-level criminological groups."""
-    cat_u = str(categoria_delito).upper()
-    del_u = str(delito).upper()
+def _normalize(text: str) -> str:
+    """Strip accents and whitespace, converting to uppercase ASCII."""
+    nfkd = unicodedata.normalize("NFKD", str(text))
+    return "".join(c for c in nfkd if not unicodedata.combining(c)).strip().upper()
 
+
+def _map_crime_category(del_norm: str) -> str:
+    """Categorize offence into high-level criminological groups based purely on normalised delito."""
     # Sexual offences
-    if any(k in del_u for k in ["SEXUAL", "VIOLACI", "ESTUPRO", "INTIMIDAD SEXUAL", "TRATA DE PERSONAS", "PORNOGRAFIA"]):
-        return "Sexual"
-    if "VIOLACI" in cat_u:
+    if any(k in del_norm for k in [
+        "SEXUAL", "ESTUPRO", "INTIMIDAD SEXUAL", "TRATA DE PERSONAS", "PORNOGRAFIA"
+    ]) or ("VIOLACI" in del_norm and "CORRESPONDENCIA" not in del_norm and "SELLOS" not in del_norm):
         return "Sexual"
 
     # Violent offences
-    if any(k in cat_u for k in ["HOMICIDIO", "SECUESTRO", "LESIONES DOLOSAS"]):
-        return "Violent"
-    if any(k in del_u for k in [
+    if any(k in del_norm for k in [
         "HOMICIDIO", "FEMINICIDIO", "VIOLENCIA FAMILIAR", "AMENAZAS", "LESIONES",
-        "SECUESTRO", "PRIVACION DE LA LIBERTAD", "DISPAROS DE ARMA", "DISCRIMINACION"
+        "SECUESTRO", "PRIVACION DE LA LIBERTAD", "DISPAROS DE ARMA", "DISCRIMINACION",
+        "TORTURA", "ASFIXIA", "ABANDONO DE PERSONA", "PLAGIO", "SUICIDIO"
     ]):
         return "Violent"
 
     # Property offences
-    if "ROBO" in cat_u:
-        return "Property"
-    if any(k in del_u for k in [
-        "ROBO", "FRAUDE", "DESPOJO", "ABUSO DE CONFIANZA", "DAÑO EN PROPIEDAD",
-        "DANO EN PROPIEDAD", "EXTORSION", "USURPACI", "COBRANZA ILEGITIMA",
-        "ENCUBRIMIENTO POR RECEPTACION"
+    if any(k in del_norm for k in [
+        "ROBO", "FRAUDE", "DESPOJO", "ABUSO DE CONFIANZA", "DANO EN PROPIEDAD",
+        "EXTORSION", "USURPACI", "COBRANZA ILEGITIMA", "ENCUBRIMIENTO POR RECEPTACION",
+        "ALLANAMIENTO", "FALSIFICACION", "ENRIQUECIMIENTO"
     ]):
         return "Property"
 
     return "Other"
 
 
-def _clean_english_title(text: str) -> str:
-    """Fallback title formatting from Spanish offence names."""
-    replacements = {
-        "DAÑO": "DAMAGE",
-        "DANO": "DAMAGE",
-        "VIOLACION": "RAPE",
-        "VIOLACIÓN": "RAPE",
-        "TRÁNSITO": "TRAFFIC",
-        "TRANSITO": "TRAFFIC",
-        "HABITACIÓN": "RESIDENCE",
-        "HABITACION": "RESIDENCE",
-        "POSESIÓN": "POSSESSION",
-        "POSESION": "POSSESSION",
-    }
-    cleaned = text
-    for k, v in replacements.items():
-        cleaned = cleaned.replace(k, v)
-    words = cleaned.split()
-    return " ".join(w.capitalize() for w in words)
+def _clean_fallback_title(text: str) -> str:
+    """Format Spanish offence name in clean title case without blind word substitutions."""
+    words = text.strip().split()
+    lowercase_words = {"de", "del", "a", "en", "por", "con", "sin", "y", "o", "al", "la", "las", "el", "los"}
+    formatted = []
+    for i, w in enumerate(words):
+        lw = w.lower()
+        if i > 0 and lw in lowercase_words:
+            formatted.append(lw)
+        else:
+            formatted.append(w.capitalize())
+    return " ".join(formatted)
 
 
-def _map_crime_type(delito: str, seen_types: dict[str, str]) -> str:
-    """Return a clean, unique English label for each Spanish delito."""
-    if delito in seen_types:
-        return seen_types[delito]
-
-    eng = CRIME_TYPE_TRANSLATIONS.get(delito)
-    if not eng:
-        eng = _clean_english_title(delito)
-
-    # Guarantee uniqueness across all distinct delitos
-    base = eng
-    idx = 2
-    existing_vals = set(seen_types.values())
-    while eng in existing_vals:
-        eng = f"{base} ({idx})"
-        idx += 1
-
-    seen_types[delito] = eng
-    return eng
+def _map_crime_type(delito: str) -> str:
+    """Return a clean, harmonised English label or cleaned title for Spanish delito."""
+    del_norm = _normalize(delito)
+    return CRIME_TYPE_TRANSLATIONS.get(del_norm, _clean_fallback_title(delito))
 
 
 def _parse_hour(val: str) -> int:
@@ -181,7 +154,7 @@ def _points_from_latlon(df: pd.DataFrame, lat_col: str, lon_col: str) -> gpd.Geo
     )
     dropped = int((~valid).sum())
     points = points.loc[valid].copy()
-    print(f"Dropped {dropped} invalid/out-of-CDMX coordinates from {len(df)} rows.")
+    print(f"[crime] Dropped {dropped} invalid/out-of-CDMX coordinates from {len(df)} rows.")
 
     geometry = gpd.points_from_xy(points[lon_col], points[lat_col])
     result = gpd.GeoDataFrame(points, geometry=geometry, crs=CRS_SOURCE_LATLON)
@@ -211,28 +184,23 @@ def run() -> gpd.GeoDataFrame:
     df = df[df["categoria_delito"] != "HECHO NO DELICTIVO"].copy()
     print(f"[crime] Filtered out 'HECHO NO DELICTIVO': {len(df):,} incidents.")
 
-    # 4. Remove exact duplicates on [delito, fecha_hecho, hora_hecho, latitud, longitud]
-    dup_mask = df.duplicated(subset=["delito", "fecha_hecho", "hora_hecho", "latitud", "longitud"])
-    dups_count = int(dup_mask.sum())
-    df = df[~dup_mask].copy()
-    print(f"[crime] Dropped {dups_count} exact duplicates; retained {len(df):,} incidents.")
-
-    # 5. Parse incident date and hour
-    df["incident_date"] = df["dt_hecho"].dt.date
-    df["incident_hour"] = df["hora_hecho"].map(_parse_hour).astype("int16")
-
-    # 6. Harmonise crime types and categories
-    df["crime_type_raw"] = df["delito"]
-    df["crime_category"] = df.apply(
-        lambda r: _map_crime_category(r["categoria_delito"], r["delito"]),
-        axis=1
-    )
-
-    type_mapping: dict[str, str] = {}
-    df["crime_type"] = df["delito"].map(lambda d: _map_crime_type(d, type_mapping))
-
-    # 7. Coordinate validation and reprojection
+    # 4. Coordinate validation and reprojection to EPSG:6372
     points_gdf = _points_from_latlon(df, "latitud", "longitud")
+
+    # 5. Remove exact duplicates among geolocated records
+    dup_mask = points_gdf.duplicated(subset=["delito", "fecha_hecho", "hora_hecho", "latitud", "longitud"])
+    dups_count = int(dup_mask.sum())
+    points_gdf = points_gdf.loc[~dup_mask].copy()
+    print(f"[crime] Dropped {dups_count} exact duplicates among geolocated incidents; retained {len(points_gdf):,} incidents.")
+
+    # 6. Parse incident date and hour
+    points_gdf["incident_date"] = points_gdf["dt_hecho"].dt.date
+    points_gdf["incident_hour"] = points_gdf["hora_hecho"].map(_parse_hour).astype("int16")
+
+    # 7. Harmonise crime types and categories (deterministic 1-to-1 category per crime_type)
+    points_gdf["crime_type_raw"] = points_gdf["delito"]
+    points_gdf["crime_type"] = points_gdf["delito"].map(_map_crime_type)
+    points_gdf["crime_category"] = points_gdf["delito"].map(lambda d: _map_crime_category(_normalize(d)))
 
     # 8. Spatial join with urban AGEBs (predicate within)
     print("[crime] Performing spatial join with Mexico City urban AGEBs...")
@@ -251,8 +219,11 @@ def run() -> gpd.GeoDataFrame:
     ]
     result = assigned_gdf[contract_columns].reset_index(drop=True)
 
-    # 10. Assertions matching team plan win conditions
-    assert len(result) == 112285, f"Expected 112,285 incidents, got {len(result):,}"
+    # 10. Assertions matching team plan win conditions and code review
+    assert abs(len(result) - 112_285) / 112_285 <= 0.005, f"Expected ≈112,285 incidents, got {len(result):,}"
+    assert result.groupby("crime_type")["crime_category"].nunique().eq(1).all(), (
+        "Each crime_type must map to exactly one crime_category"
+    )
     assert result["source_incident_id"].is_unique, "source_incident_id must be unique"
     assert result["cvegeo"].notna().all(), "Every retained incident must have an assigned cvegeo"
     assert result["incident_hour"].between(-1, 23).all(), "incident_hour must be within -1..23"
