@@ -7,7 +7,7 @@
     "file": "census_ageb_2020_09.zip",
     "bytes": 12990807,
     "sha256": "1f5f123b8e9a50991d1847271b5a2bf321e813e924e5bcf958cab612311c765a",
-    "downloaded_at": "2026-10-06T03:24:30.926047+00:00",
+    "downloaded_at": "2026-10-06T05:16:15.653993+00:00",
     "original_grain": "One row per urban AGEB / urban block (with locality and municipality totals)",
     "licence": "INEGI Términos de libre uso de la información"
   },
@@ -19,7 +19,7 @@
     "file": "denue_09.zip",
     "bytes": 45439249,
     "sha256": "ae608f30118f6313e9d537ea22918b2c9e9a3d3f19c2ddf5907f55dbb1642b19",
-    "downloaded_at": "2026-10-06T03:24:55.939073+00:00",
+    "downloaded_at": "2026-10-06T05:16:56.909874+00:00",
     "original_grain": "One row per economic establishment (point, lat/lon)",
     "licence": "INEGI Términos de libre uso de la información"
   },
@@ -31,8 +31,21 @@
     "file": "marco_geo_2020_09.zip",
     "bytes": 83207305,
     "sha256": "685b912f5458138a70726cff41aff828473e14264c43289d3b21f86a9df00320",
-    "downloaded_at": "2026-10-06T03:25:38.319033+00:00",
+    "downloaded_at": "2026-10-06T05:18:20.240174+00:00",
     "original_grain": "One polygon per geostatistical unit (state, municipality, locality, AGEB, block)",
     "licence": "INEGI Términos de libre uso de la información"
+  },
+  "crime_fgj_2024": {
+    "key": "crime_fgj_2024",
+    "name": "FGJ CDMX - Carpetas de investigación 2024 (Portal de Datos Abiertos CDMX; also served by hoyodecrimen.com)",
+    "publisher": "Fiscalía General de Justicia de la Ciudad de México",
+    "url": "https://archivo.datos.cdmx.gob.mx/FGJ/carpetas/carpetasFGJ_2024.csv",
+    "file": "crime_fgj_2024.csv",
+    "bytes": 41017850,
+    "sha256": "2ac3f17189a61ab7b2eb95fb21470e46adaba6f92526c7b92d23190ed2431f84",
+    "downloaded_at": "2026-10-06T05:28:11.000000+00:00",
+    "original_grain": "One row per investigation file (carpeta) opened in 2024: offence, category, date/time, lat/lon",
+    "licence": "CC-BY-4.0",
+    "format": "csv"
   }
 }
