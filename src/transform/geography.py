@@ -51,7 +51,7 @@ def _filter_state(frame: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 def run() -> gpd.GeoDataFrame:
-    """Write and return the 2,431 urban AGEB polygons for Mexico City."""
+    """Write and return the urban AGEB polygons for the configured scope (2,431 for all of CDMX)."""
     ageb = _filter_state(_read_projected(AGEB_FILE))
     localities = _filter_state(_read_projected(LOCALITY_FILE))
     municipalities = _filter_state(_read_projected(MUNICIPALITY_FILE))
