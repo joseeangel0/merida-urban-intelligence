@@ -1,9 +1,9 @@
 -- =====================================================================
--- 01_schema.sql  —  Mérida Urban Intelligence Data Warehouse
+-- 01_schema.sql  —  Urban Intelligence Data Warehouse (Mexico City)
 -- Star schema in PostgreSQL/PostGIS. Re-runnable: drops and recreates dw.
 --
 -- Unit of analysis: urban AGEB (INEGI Marco Geoestadístico 2020),
--- municipality of Mérida (31050). All geometries in EPSG:6372 (metres).
+-- Mexico City (state 09, 16 alcaldías). All geometries in EPSG:6372 (metres).
 --
 --   stg.*  staging tables written by Python (src/load/load_staging.py)
 --   dw.*   dimensional model populated by sql/02_load.sql
@@ -31,7 +31,7 @@ CREATE TABLE dw.dim_source (
     sha256          CHAR(64)                   -- from data/raw/manifest.json
 );
 
--- Geography: one row per urban AGEB of the municipality of Mérida
+-- Geography: one row per urban AGEB of Mexico City
 CREATE TABLE dw.dim_geography (
     geo_key         SERIAL PRIMARY KEY,
     cvegeo          CHAR(13) NOT NULL UNIQUE,  -- ENT(2)+MUN(3)+LOC(4)+AGEB(4)
@@ -41,7 +41,7 @@ CREATE TABLE dw.dim_geography (
     cve_ageb        CHAR(4)  NOT NULL,
     mun_name        TEXT     NOT NULL,
     loc_name        TEXT     NOT NULL,
-    is_city_core    BOOLEAN  NOT NULL,         -- TRUE when cve_loc = '0001' (Mérida city)
+    is_city_core    BOOLEAN  NOT NULL,         -- TRUE when cve_loc = '0001' (main locality of the alcaldía)
     area_km2        NUMERIC(12,4) NOT NULL CHECK (area_km2 > 0),
     geom            GEOMETRY(MultiPolygon, 6372) NOT NULL
 );

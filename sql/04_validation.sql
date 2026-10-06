@@ -31,7 +31,7 @@ BEGIN
     END LOOP;
 END $$;
 
--- 2. Geography: 526 valid AGEB polygons in EPSG:6372, 259.86 km2 ---------
+-- 2. Geography: 2,431 valid AGEB polygons in EPSG:6372, 792.15 km2 -------
 DO $$
 DECLARE
     n BIGINT; n_invalid BIGINT; n_srid BIGINT; total_km2 NUMERIC;
@@ -42,11 +42,11 @@ BEGIN
            sum(area_km2)
       INTO n, n_invalid, n_srid, total_km2
       FROM dw.dim_geography;
-    IF n <> 526 THEN RAISE EXCEPTION '[geo] expected 526 AGEBs, found %', n; END IF;
+    IF n <> 2431 THEN RAISE EXCEPTION '[geo] expected 2431 AGEBs, found %', n; END IF;
     IF n_invalid > 0 THEN RAISE EXCEPTION '[geo] % invalid geometries', n_invalid; END IF;
     IF n_srid > 0 THEN RAISE EXCEPTION '[geo] % geometries not in EPSG:6372', n_srid; END IF;
-    IF abs(total_km2 - 259.86) > 0.1 THEN RAISE EXCEPTION '[geo] total area % km2, expected 259.86', total_km2; END IF;
-    RAISE NOTICE '[geo] 526 AGEBs, all valid, EPSG:6372, % km2', round(total_km2, 2);
+    IF abs(total_km2 - 792.15) > 0.1 THEN RAISE EXCEPTION '[geo] total area % km2, expected 792.15', total_km2; END IF;
+    RAISE NOTICE '[geo] 2431 AGEBs, all valid, EPSG:6372, % km2', round(total_km2, 2);
 END $$;
 
 -- 3. Census: one row per AGEB, population matches INEGI ------------------
@@ -60,7 +60,7 @@ BEGIN
      WHERE c.geo_key IS NULL;
     IF n_missing > 0 THEN RAISE EXCEPTION '[census] % AGEBs without census row', n_missing; END IF;
     SELECT sum(pop_total) INTO pop FROM dw.fact_census_ageb;
-    IF pop IS DISTINCT FROM 957399 THEN RAISE EXCEPTION '[census] total population %, expected 957399', pop; END IF;
+    IF pop IS DISTINCT FROM 9138524 THEN RAISE EXCEPTION '[census] total population %, expected 9138524', pop; END IF;
     RAISE NOTICE '[census] every AGEB has a census row, population = %', pop;
 END $$;
 
@@ -112,8 +112,8 @@ BEGIN
     SELECT count(*) INTO biz_fact FROM dw.fact_business;
     SELECT count(*) INTO crimes_fact FROM dw.fact_crime_incident;
 
-    IF n <> 526 THEN RAISE EXCEPTION '[kpi] v_kpi_ageb has % rows, expected 526', n; END IF;
-    IF pop IS DISTINCT FROM 957399 THEN RAISE EXCEPTION '[kpi] population %, expected 957399', pop; END IF;
+    IF n <> 2431 THEN RAISE EXCEPTION '[kpi] v_kpi_ageb has % rows, expected 2431', n; END IF;
+    IF pop IS DISTINCT FROM 9138524 THEN RAISE EXCEPTION '[kpi] population %, expected 9138524', pop; END IF;
     IF biz <> biz_fact THEN RAISE EXCEPTION '[kpi] businesses % <> fact_business %', biz, biz_fact; END IF;
     IF crimes <> crimes_fact THEN RAISE EXCEPTION '[kpi] incidents % <> fact_crime_incident %', crimes, crimes_fact; END IF;
 
@@ -129,7 +129,7 @@ BEGIN
         END IF;
     END LOOP;
 
-    RAISE NOTICE '[kpi] v_kpi_ageb: 526 AGEBs, population %, businesses %, incidents %', pop, biz, crimes;
+    RAISE NOTICE '[kpi] v_kpi_ageb: 2431 AGEBs, population %, businesses %, incidents %', pop, biz, crimes;
 END $$;
 
 -- 7. Incidents by type and time reconcile with the fact table -------------
