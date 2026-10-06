@@ -10,8 +10,6 @@ import pandas as pd
 
 from src.config import (
     CRIME_YEAR,
-    CRS_PROJECTED,
-    CRS_SOURCE_LATLON,
     DATA_PROCESSED,
     DATA_RAW,
 )
