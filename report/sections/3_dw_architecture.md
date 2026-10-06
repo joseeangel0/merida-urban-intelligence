@@ -16,7 +16,7 @@ The warehouse is a star schema with three fact tables that share conformed dimen
 | `fact_business` | one DENUE establishment | geography, economic activity (SCIAN), business size, date, source |
 | `fact_crime_incident` | one crime incident | geography, crime type, date, hour, source |
 
-`dim_geography` is the dimension that integrates the three sources: it holds the 526 urban AGEB polygons of the municipality of Mérida, their `CVEGEO` identifier and their area in km². The census joins through the identifier; establishments and incidents join through their location.
+`dim_geography` is the dimension that integrates the three sources: it holds the 2,431 urban AGEB polygons of Mexico City, their `CVEGEO` identifier and their area in km². The census joins through the identifier; establishments and incidents join through their location.
 
 Three design decisions shape the model:
 
@@ -28,11 +28,11 @@ Three design decisions shape the model:
 
 The views in `sql/03_views.sql` turn the facts into the required indicators: `v_kpi_ageb` has one row per AGEB with the 13 territorial KPIs and the polygon, `v_crime_by_type_time` provides the distribution of incidents by type, month, weekday and time band, and `v_business_by_sector` supports the dominant-activity indicator. Phase 3 notebooks read only from these views.
 
-The validation script checks that every warehouse table has the same number of rows as its staging source, that the 526 polygons are valid and add up to 259.86 km², that the census population equals INEGI's figure (957,399), that every point lies inside its assigned AGEB, and that the KPI view reconciles with the fact tables.
+The validation script checks that every warehouse table has the same number of rows as its staging source, that the 2,431 polygons are valid and add up to 792.15 km², that the census population equals INEGI's figure for those AGEBs (9,138,524), that every point lies inside its assigned AGEB, and that the KPI view reconciles with the fact tables.
 
 | Table | Rows |
 |---|---|
-| `dim_geography` | 526 |
-| `fact_census_ageb` | 526 |
-| `fact_business` | 56,667 |
+| `dim_geography` | 2,431 |
+| `fact_census_ageb` | 2,431 |
+| `fact_business` | ≈ 461,231 |
 | `fact_crime_incident` | _TBD_ |

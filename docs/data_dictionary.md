@@ -52,7 +52,7 @@ _TODO_
 
 ## KPI views (`sql/03_views.sql`) — _owner: Jose_
 
-**dw.v_kpi_ageb** — one row per urban AGEB (526). Formulas: [README §6](../README.md#6-kpis).
+**dw.v_kpi_ageb** — one row per urban AGEB (2,431). Formulas: [README §6](../README.md#6-kpis).
 
 | Column | Type | Unit |
 |---|---|---|
