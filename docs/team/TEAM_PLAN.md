@@ -116,6 +116,7 @@ def assign_ageb(points: gpd.GeoDataFrame) -> gpd.GeoDataFrame: ...
 
 - `src/load/load_staging.py` (Lorena) writes each processed file to `stg.<file name>` (`stg.ageb`, `stg.census_ageb`, `stg.economic_activity`, `stg.business`, `stg.crime`) with `if_exists="replace"`, plus `stg.source` built from `data/raw/manifest.json` and `src/config.py:SOURCES`.
 - `sql/02_load.sql` (Lorena) fills `dw.*` from `stg.*` resolving surrogate keys (`cvegeo → geo_key`, `scian_code → activity_key`, `per_ocu_label → size_key`, `crime_type → crime_type_key`, `date → date_key`, hour → `hour_key`). `dim_date` is generated with `generate_series` between the min and max dates in `stg.business` and `stg.crime`.
+- Staging loads every available processed Parquet file. If a transform has not produced its staging table yet, the load reports it and leaves that dependent dimension/fact empty; it always prints row counts for all warehouse tables.
 - `sql/03_views.sql` (Jose) creates the KPI views. **Contract for `dw.v_kpi_ageb`** (one row per AGEB, used by every Phase 3 notebook):
 
   `geo_key, cvegeo, loc_name, is_city_core, low_population, area_km2, pop_total, pop_density_km2, pea_rate, pct_0_14, pct_15_64, pct_65_plus, businesses_total, business_density_km2, businesses_per_1k, retail_total, retail_density_km2, services_total, service_density_km2, dominant_sector, dominant_sector_share, crime_total, crime_rate_per_1k, crimes_per_100_businesses, geom`
