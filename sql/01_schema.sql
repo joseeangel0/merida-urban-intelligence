@@ -1,6 +1,7 @@
 -- =====================================================================
 -- 01_schema.sql  —  Urban Intelligence Data Warehouse (Mexico City)
--- Star schema in PostgreSQL/PostGIS. Re-runnable: drops and recreates dw.
+-- Star schema in PostgreSQL/PostGIS. Re-runnable: drops and recreates dw and stg
+-- (stg is rebuilt by the stage step, so no stale staging table survives a run).
 --
 -- Unit of analysis: urban AGEB (INEGI Marco Geoestadístico 2020),
 -- Mexico City (state 09, 16 alcaldías). All geometries in EPSG:6372 (metres).
@@ -13,7 +14,8 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 
 DROP SCHEMA IF EXISTS dw CASCADE;
 CREATE SCHEMA dw;
-CREATE SCHEMA IF NOT EXISTS stg;
+DROP SCHEMA IF EXISTS stg CASCADE;
+CREATE SCHEMA stg;
 
 -- ---------------------------------------------------------------------
 -- DIMENSIONS
