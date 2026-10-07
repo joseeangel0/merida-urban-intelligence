@@ -13,58 +13,12 @@ from src.config import (
     DATA_PROCESSED,
     DATA_RAW,
 )
+from src.transform.crime_labels import CRIME_TYPE_TRANSLATIONS
 from src.transform.spatial import assign_ageb, points_from_latlon
 
 RAW_FILE = DATA_RAW / "crime_fgj_2024" / "crime_fgj_2024.csv"
 FALLBACK_RAW_FILE = DATA_RAW / "crime_fgj_2024.csv"
 OUTPUT_FILE = DATA_PROCESSED / "crime.parquet"
-
-# Standard English crime type translations for top offences (unaccented keys)
-CRIME_TYPE_TRANSLATIONS = {
-    "VIOLENCIA FAMILIAR": "Family Violence",
-    "AMENAZAS": "Threats",
-    "FRAUDE": "Fraud",
-    "ROBO DE ACCESORIOS DE AUTO": "Theft of Auto Parts and Accessories",
-    "ROBO DE OBJETOS": "Theft of Personal Property",
-    "USURPACION DE IDENTIDAD": "Identity Theft",
-    "ROBO DE OBJETOS DEL INTERIOR DE UN VEHICULO": "Theft from Vehicle Interior",
-    "ROBO A TRANSEUNTE EN VIA PUBLICA CON VIOLENCIA": "Robbery on Public Road with Violence",
-    "ABUSO SEXUAL": "Sexual Abuse",
-    "DANO EN PROPIEDAD AJENA CULPOSA POR TRANSITO VEHICULAR A AUTOMOVIL": "Accidental Property Damage to Vehicle in Traffic",
-    "LESIONES INTENCIONALES POR GOLPES": "Intentional Assault and Battery",
-    "ROBO A NEGOCIO SIN VIOLENCIA POR FARDEROS (TIENDAS DE AUTOSERVICIO)": "Shoplifting at Commercial Business (Self-Service)",
-    "DESPOJO": "Dispossession / Squatting",
-    "ROBO A CASA HABITACION SIN VIOLENCIA": "Residential Burglary without Violence",
-    "NARCOMENUDEO POSESION SIMPLE": "Drug Possession (Simple)",
-    "ROBO DE MOTOCICLETA SIN VIOLENCIA": "Motorcycle Theft without Violence",
-    "LESIONES CULPOSAS POR TRANSITO VEHICULAR EN COLISION": "Involuntary Injury in Traffic Collision",
-    "ROBO A NEGOCIO SIN VIOLENCIA POR FARDEROS": "Shoplifting at Commercial Business",
-    "ABUSO DE CONFIANZA": "Breach of Trust / Embezzlement",
-    "ROBO DE VEHICULO DE SERVICIO PARTICULAR SIN VIOLENCIA": "Private Vehicle Theft without Violence",
-    "ROBO A NEGOCIO SIN VIOLENCIA": "Business Theft without Violence",
-    "NARCOMENUDEO POSESION CON FINES DE VENTA, COMERCIO Y SUMINISTRO": "Drug Possession with Intent to Distribute",
-    "TENTATIVA DE EXTORSION": "Attempted Extortion",
-    "DELITOS ELECTORALES": "Electoral Offenses",
-    "COBRANZA ILEGITIMA": "Unlawful Debt Collection",
-    "ROBO DE PLACA DE AUTOMOVIL": "Theft of License Plate",
-    "CONTRA LA INTIMIDAD SEXUAL": "Offense against Sexual Privacy",
-    "ROBO A NEGOCIO CON VIOLENCIA": "Robbery at Business with Violence",
-    "DANO EN PROPIEDAD AJENA INTENCIONAL A AUTOMOVIL": "Intentional Property Damage to Automobile",
-    "ROBO A TRANSEUNTE EN PARQUES Y MERCADOS CON VIOLENCIA": "Robbery in Parks or Markets with Violence",
-    "FALSIFICACION DE TITULOS AL PORTADOR Y DOCUMENTOS DE CREDITO PUBLICO": "Forgery of Bearer Securities and Public Credit",
-    "ROBO A TRANSEUNTE DE CELULAR CON VIOLENCIA": "Cell Phone Robbery with Violence",
-    "HOMICIDIO DOLOSO": "Intentional Homicide",
-    "LESIONES DOLOSAS POR DISPARO DE ARMA DE FUEGO": "Intentional Assault by Firearm Discharge",
-    "VIOLACION": "Rape",
-    "SECUESTRO": "Kidnapping",
-    "ROBO A REPARTIDOR CON Y SIN VIOLENCIA": "Robbery of Delivery Personnel",
-    "ROBO A PASAJERO A BORDO DEL METRO CON Y SIN VIOLENCIA": "Robbery on Subway (Metro)",
-    "ROBO A PASAJERO A BORDO DE MICROBUS CON Y SIN VIOLENCIA": "Robbery on Public Bus / Microbus",
-    "ROBO A CASA HABITACION CON VIOLENCIA": "Residential Burglary with Violence",
-    "ROBO A PASAJERO A BORDO DE TAXI CON VIOLENCIA": "Robbery on Taxi with Violence",
-    "ROBO A CUENTAHABIENTE SALIENDO DEL CAJERO CON VIOLENCIA": "Robbery of Bank Customer leaving ATM with Violence",
-    "ROBO A TRANSPORTISTA CON Y SIN VIOLENCIA": "Robbery of Freight Cargo / Carrier",
-}
 
 
 def _normalize(text: str) -> str:
@@ -75,6 +29,10 @@ def _normalize(text: str) -> str:
 
 def _map_crime_category(del_norm: str) -> str:
     """Categorize offence into high-level criminological groups based purely on normalised delito."""
+    # Negligent offences must not inflate intentional-violence indicators.
+    if "CULPOS" in del_norm:
+        return "Other"
+
     # Sexual offences
     if any(k in del_norm for k in [
         "SEXUAL", "ESTUPRO", "INTIMIDAD SEXUAL", "TRATA DE PERSONAS", "PORNOGRAFIA"
@@ -100,24 +58,20 @@ def _map_crime_category(del_norm: str) -> str:
     return "Other"
 
 
-def _clean_fallback_title(text: str) -> str:
-    """Format Spanish offence name in clean title case without blind word substitutions."""
-    words = text.strip().split()
-    lowercase_words = {"de", "del", "a", "en", "por", "con", "sin", "y", "o", "al", "la", "las", "el", "los"}
-    formatted = []
-    for i, w in enumerate(words):
-        lw = w.lower()
-        if i > 0 and lw in lowercase_words:
-            formatted.append(lw)
-        else:
-            formatted.append(w.capitalize())
-    return " ".join(formatted)
-
-
 def _map_crime_type(delito: str) -> str:
-    """Return a clean, harmonised English label or cleaned title for Spanish delito."""
+    """Return the English label; require explicit review of unseen offences."""
     del_norm = _normalize(delito)
-    return CRIME_TYPE_TRANSLATIONS.get(del_norm, _clean_fallback_title(delito))
+    try:
+        return CRIME_TYPE_TRANSLATIONS[del_norm]
+    except KeyError as exc:
+        raise ValueError(f"Missing English crime label: {del_norm!r}") from exc
+
+
+def _validate_translation_coverage(delitos: pd.Series) -> None:
+    """Check every eligible source label before coordinate filtering."""
+    untranslated = sorted(set(delitos.map(_normalize)) - CRIME_TYPE_TRANSLATIONS.keys())
+    if untranslated:
+        raise ValueError(f"Missing English crime labels: {untranslated}")
 
 
 def _parse_hour(val: str) -> int:
@@ -154,6 +108,8 @@ def run() -> gpd.GeoDataFrame:
     # 3. Drop non-criminal records (HECHO NO DELICTIVO)
     df = df[df["categoria_delito"] != "HECHO NO DELICTIVO"].copy()
     print(f"[crime] Filtered out 'HECHO NO DELICTIVO': {len(df):,} incidents.")
+
+    _validate_translation_coverage(df["delito"])
 
     # 4. Coordinate validation and reprojection to EPSG:6372 via shared spatial helper
     points_gdf = points_from_latlon(df, "latitud", "longitud")

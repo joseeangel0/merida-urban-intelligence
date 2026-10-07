@@ -57,6 +57,20 @@ _TODO_
 | `crime_type_raw` | text | Original Spanish statutory offence description as reported by FGJ CDMX (`delito`, e.g. `VIOLENCIA FAMILIAR`) |
 | `crime_category` | text | Standard high-level criminological macro-category: `Property`, `Violent`, `Sexual`, `Other` |
 
+Crime labels are explicitly translated from all 231 normalized criminal `delito`
+values in the pinned 2024 offence-year sample using
+[`src/transform/crime_labels.py`](../src/transform/crime_labels.py). Accent variants
+share a label, while `crime_type_raw` preserves the source spelling. An unknown
+label raises an error before coordinate filtering so incomplete English coverage
+cannot silently enter the warehouse. These are analytical translations, not a
+replacement for the original statutory descriptions.
+
+Categories depend only on normalized `delito`, with one category per `crime_type`.
+Any label containing `CULPOS` (negligent injury, homicide or property damage) maps
+to `Other` before the sexual, violent and property rules. This prevents traffic
+collisions, falls and other negligent offences from inflating `Violent` counts;
+intentional injury and homicide retain their existing classification.
+
 **dw.fact_crime_incident** — grain: one row per georeferenced crime incident located strictly inside an urban AGEB occurring in 2024.
 
 | Column | Type | Description |
