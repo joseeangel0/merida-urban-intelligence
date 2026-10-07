@@ -70,8 +70,8 @@ range rather than an exact employee count.
 | `size_class` | text | Analytical class: Micro, Small, Medium or Large |
 
 **dw.fact_business** — grain: one DENUE establishment whose point geometry is
-inside a Mérida urban AGEB. The full Yucatán file is spatially joined; reported
-municipality codes do not determine inclusion.
+inside a Mexico City urban AGEB. The full state file is spatially joined; reported
+AGEB codes do not determine inclusion.
 
 | Column | Type | Description / source |
 |---|---|---|
@@ -84,7 +84,7 @@ municipality codes do not determine inclusion.
 | `date_key` | integer FK, nullable | `fecha_alta` month represented as its first calendar day; this is a registration/start month, not the snapshot date |
 | `source_key` | smallint FK | DENUE source lineage |
 | `establishment_name` | text, nullable | `nom_estab` |
-| `cvegeo_reported` | char(13), nullable | `31 + cve_mun + cve_loc + ageb`; retained to audit the spatial assignment |
+| `cvegeo_reported` | char(13), nullable | `cve_ent + cve_mun + cve_loc + ageb`; retained to audit the spatial assignment |
 | `establishment_count` | smallint | Additive measure, always 1 per fact row |
 | `geom` | Point, EPSG:6372 | Projected DENUE longitude/latitude |
 
