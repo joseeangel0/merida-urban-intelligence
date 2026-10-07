@@ -15,9 +15,9 @@ _TODO_
 | `source_key` | smallint PK | Surrogate key |
 | `source_code` | text UK | Key in `src/config.py:SOURCES` and `data/raw/manifest.json` |
 | `source_name`, `publisher`, `url` | text | Official name, publisher and download URL |
-| `version_label` | text | Edition of the dataset, from `SOURCES[...]['version_label']` |
+| `version_label` | text, not null | Edition of the dataset, from `SOURCES[...]['version_label']` |
 | `original_grain` | text | One row of the original file represents … |
-| `sha256` | char(64), nullable | SHA-256 of the downloaded file (zip or CSV) from `manifest.json`; NULL if the source was not downloaded |
+| `sha256` | char(64), nullable | SHA-256 of the downloaded file (zip or CSV) from `manifest.json`; NULL when `manifest.json` has no entry for the source (not downloaded yet, or no manifest) |
 
 Rows (4):
 
