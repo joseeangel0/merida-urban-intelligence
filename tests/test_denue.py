@@ -6,10 +6,12 @@ import pytest
 from shapely.geometry import Point
 
 from src.transform.denue import (
+    REQUIRED_COLUMNS,
     activity_group,
     build_business,
     build_economic_activity,
     parse_alta_date,
+    read_denue,
     sector_code,
 )
 
@@ -26,11 +28,11 @@ def source() -> gpd.GeoDataFrame:
             "nombre_act": ["Retail activity", "Legal services", "Manufacturing"],
             "per_ocu": ["0 a 5 personas", "6 a 10 personas", "11 a 30 personas"],
             "fecha_alta": ["2020-01", "2021-02", "bad"],
-            "cve_ent": ["31", "31", "31"],
-            "cve_mun": ["050", "050", "050"],
+            "cve_ent": ["09", "09", "09"],
+            "cve_mun": ["015", "015", "015"],
             "cve_loc": ["0001", "0001", "0001"],
             "ageb": ["001A", "002B", "003C"],
-            "cvegeo": ["310500001001A", "310500001002B", "310500001003C"],
+            "cvegeo": ["090150001001A", "090150001002B", "090150001003C"],
         },
         geometry=[Point(1, 1), Point(2, 2), Point(3, 3)],
         crs="EPSG:6372",
@@ -93,10 +95,27 @@ def test_business_has_exact_contract_and_projected_geometry(source):
     ]
     assert str(result["denue_id"].dtype) == "int64"
     assert result.crs.to_epsg() == 6372
-    assert result.loc[0, "cvegeo_reported"] == "310500001001A"
+    assert result.loc[0, "cvegeo_reported"] == "090150001001A"
     assert type(result.loc[0, "alta_date"]) is date
     assert result.loc[0, "alta_date"] == date(2020, 1, 1)
     assert result["denue_id"].is_unique
+
+
+def test_business_reported_cvegeo_uses_the_reported_state_code(source):
+    source.loc[1, "cve_ent"] = "9"
+
+    result = build_business(source)
+
+    assert result.loc[1, "cvegeo_reported"] == "090150001002B"
+    assert result["cvegeo_reported"].eq(result["cvegeo"]).all()
+
+
+def test_read_denue_requires_the_state_code_column(tmp_path):
+    path = tmp_path / "denue.csv"
+    pd.DataFrame(columns=sorted(REQUIRED_COLUMNS - {"cve_ent"})).to_csv(path, index=False)
+
+    with pytest.raises(ValueError, match="cve_ent"):
+        read_denue(path)
 
 
 def test_business_rejects_unknown_employment_bands(source):

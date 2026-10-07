@@ -5,7 +5,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from src.config import DATA_PROCESSED, DATA_RAW
+from src.config import CVE_ENT, DATA_PROCESSED, DATA_RAW
 from src.transform.spatial import assign_ageb, points_from_latlon
 
 
@@ -41,9 +41,12 @@ SECTOR_NAMES = {
     "81": "Other services except government activities",
     "93": "Government activities and international organizations",
 }
-DENUE_FILE = DATA_RAW / "denue_31" / "conjunto_de_datos" / "denue_inegi_31_.csv"
+DENUE_FILE = DATA_RAW / f"denue_{CVE_ENT}" / "conjunto_de_datos" / f"denue_inegi_{CVE_ENT}_.csv"
 BUSINESS_FILE = DATA_PROCESSED / "business.parquet"
 ECONOMIC_ACTIVITY_FILE = DATA_PROCESSED / "economic_activity.parquet"
+# DENUE points inside CDMX urban AGEBs (TEAM_PLAN §3.5)
+EXPECTED_BUSINESSES = 461_231
+BUSINESS_TOLERANCE = 50
 REQUIRED_COLUMNS = {
     "id",
     "clee",
@@ -52,6 +55,7 @@ REQUIRED_COLUMNS = {
     "nombre_act",
     "per_ocu",
     "fecha_alta",
+    "cve_ent",
     "cve_mun",
     "cve_loc",
     "ageb",
@@ -136,7 +140,7 @@ def build_business(frame: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     business["scian_code"] = business["codigo_act"].astype("string").str.zfill(6)
     business["alta_date"] = parse_alta_date(business["fecha_alta"]).dt.date
     business["cvegeo_reported"] = (
-        "31"
+        business["cve_ent"].astype("string").str.zfill(2)
         + business["cve_mun"].astype("string").str.zfill(3)
         + business["cve_loc"].astype("string").str.zfill(4)
         + business["ageb"].astype("string").str.zfill(4)
@@ -177,8 +181,10 @@ def run() -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
         economic_activity.loc[economic_activity["activity_group"].eq("Retail"), "scian_code"]
     )
     retail_count = int(business["scian_code"].isin(retail_codes).sum())
-    if not 56_662 <= len(business) <= 56_672:
-        raise ValueError(f"Expected about 56,667 businesses; got {len(business):,}")
+    if abs(len(business) - EXPECTED_BUSINESSES) > BUSINESS_TOLERANCE:
+        raise ValueError(
+            f"Expected {EXPECTED_BUSINESSES:,} ± {BUSINESS_TOLERANCE} businesses; got {len(business):,}"
+        )
     if agreement < 0.995:
         raise ValueError(f"Spatial/reported AGEB agreement is only {agreement:.2%}")
     if not set(business["scian_code"]).issubset(set(economic_activity["scian_code"])):
