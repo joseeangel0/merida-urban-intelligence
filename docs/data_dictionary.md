@@ -90,7 +90,42 @@ AGEB codes do not determine inclusion.
 
 ## dim_crime_type, fact_crime_incident — _owner: Valeria_
 
-_TODO_
+**dw.dim_crime_type** — one row per harmonised crime type (dimension).
+
+| Column | Type | Description |
+|---|---|---|
+| `crime_type_key` | serial PK | Surrogate key for the crime type |
+| `crime_type` | text UK | Unique harmonised English crime label (e.g. `Family Violence`, `Threats`, `Fraud`, `Robbery on Public Road with Violence`) |
+| `crime_type_raw` | text | Original Spanish statutory offence description as reported by FGJ CDMX (`delito`, e.g. `VIOLENCIA FAMILIAR`) |
+| `crime_category` | text | Standard high-level criminological macro-category: `Property`, `Violent`, `Sexual`, `Other` |
+
+Crime labels are explicitly translated from all 231 normalized criminal `delito`
+values in the pinned 2024 offence-year sample using
+[`src/transform/crime_labels.py`](../src/transform/crime_labels.py). Accent variants
+share a label, while `crime_type_raw` preserves the source spelling. An unknown
+label raises an error before coordinate filtering so incomplete English coverage
+cannot silently enter the warehouse. These are analytical translations, not a
+replacement for the original statutory descriptions.
+
+Categories depend only on normalized `delito`, with one category per `crime_type`.
+Any label containing `CULPOS` (negligent injury, homicide or property damage) maps
+to `Other` before the sexual, violent and property rules. This prevents traffic
+collisions, falls and other negligent offences from inflating `Violent` counts;
+intentional injury and homicide retain their existing classification.
+
+**dw.fact_crime_incident** — grain: one row per georeferenced crime incident located strictly inside an urban AGEB occurring in 2024.
+
+| Column | Type | Description |
+|---|---|---|
+| `incident_key` | bigserial PK | Surrogate key for the incident |
+| `source_incident_id` | text | Stable 1-based identifier referencing the raw source line (`fgj2024-{line_number}`) |
+| `geo_key` | int FK | Foreign key to `dw.dim_geography` (urban AGEB containing the incident point via spatial join) |
+| `crime_type_key` | int FK | Foreign key to `dw.dim_crime_type` |
+| `date_key` | int FK | Foreign key to `dw.dim_date` (`YYYYMMDD` from `fecha_hecho`), nullable |
+| `hour_key` | smallint FK | Foreign key to `dw.dim_hour` (0–23; −1 = unknown/unrecorded hour) |
+| `source_key` | smallint FK | Foreign key to `dw.dim_source` (`crime_fgj_2024`) |
+| `incident_count` | smallint | Additive count measure (always 1 per incident row) |
+| `geom` | geometry(Point, 6372) | Incident point coordinates reprojected to Mexico ITRF2008 LCC (EPSG:6372) |
 
 ## KPI views (`sql/03_views.sql`) — _owner: Jose_
 

@@ -34,5 +34,18 @@
     "downloaded_at": "2026-10-06T03:25:38.319033+00:00",
     "original_grain": "One polygon per geostatistical unit (state, municipality, locality, AGEB, block)",
     "licence": "INEGI Términos de libre uso de la información"
+  },
+  "crime_fgj_2024": {
+    "key": "crime_fgj_2024",
+    "name": "FGJ CDMX - Carpetas de investigación 2024 (Portal de Datos Abiertos CDMX; also served by hoyodecrimen.com)",
+    "publisher": "Fiscalía General de Justicia de la Ciudad de México",
+    "url": "https://archivo.datos.cdmx.gob.mx/FGJ/carpetas/carpetasFGJ_2024.csv",
+    "file": "crime_fgj_2024.csv",
+    "bytes": 41017850,
+    "sha256": "2ac3f17189a61ab7b2eb95fb21470e46adaba6f92526c7b92d23190ed2431f84",
+    "downloaded_at": "2026-10-06T05:28:11.000000+00:00",
+    "original_grain": "One row per investigation file (carpeta) opened in 2024: offence, category, date/time, lat/lon",
+    "licence": "CC-BY-4.0",
+    "format": "csv"
   }
 }

@@ -61,6 +61,60 @@ and represented by its first day, not treated as the snapshot date. SCIAN sector
 46 is Retail; sectors 51–56, 61, 62, 71, 72 and 81 are Services; remaining
 sectors are Other. Official combined sectors 31–33 and 48–49 are preserved.
 
+### FGJ public-safety layer
+
+[`src/transform/crime.py`](src/transform/crime.py) reads the FGJ CSV as strings
+from `data/raw/crime_fgj_2024/crime_fgj_2024.csv`. The source has one row per
+investigation file opened in 2024; the analytical sample keeps **offences dated
+in 2024** (`fecha_hecho`, configured by `CRIME_YEAR`) and excludes
+`categoria_delito = 'HECHO NO DELICTIVO'`. Filing date (`fecha_inicio`) is not
+used as the offence date. Since the source has no incident identifier,
+`source_incident_id` records the original 1-based row number as `fgj2024-N`,
+before filtering. Its reproducibility depends on the file SHA-256 in the manifest.
+
+The shared spatial helpers validate longitude/latitude against the CDMX bounding
+box, drop missing/zero/out-of-range coordinates, and project points from
+EPSG:4326 to EPSG:6372. Only then are duplicates removed using
+`delito`, `fecha_hecho`, `hora_hecho`, `latitud`, and `longitud`. This order avoids
+treating distinct files with empty coordinates as identical incidents. The
+`within` spatial join assigns each retained point to one urban AGEB; points
+outside every polygon, including boundary points, are dropped and counted.
+Multiple polygon matches raise an error.
+
+Crime labels are normalized for accents and case. The explicit
+[`English mapping table`](src/transform/crime_labels.py) covers all **231
+normalized criminal offence labels** in the 2024 sample; an unseen label raises
+an error rather than silently falling back to Spanish. `crime_type_raw` retains
+the original description. Categories (`Property`, `Violent`, `Sexual`, `Other`)
+are analytical groupings derived from normalized `delito`, with exactly one
+category per harmonised type. Labels containing `CULPOS` map to `Other` before
+the remaining rules, so negligent injuries, homicides and property damage are
+not classified as intentional violence. The original `categoria_delito` is
+used for the non-criminal filter, not as the harmonised category.
+
+`incident_date` preserves the offence date; `incident_hour` is an integer from
+0 to 23, with **−1 for unknown or invalid hours** (170 retained records).
+The output is `data/processed/crime.parquet`, with the eight contracted columns
+and Point geometry in EPSG:6372. It preserves one row per retained investigation
+file; aggregation by AGEB, type and time occurs in the warehouse views.
+
+The [profiling notebook](notebooks/13_profile_crime.ipynb) documents this funnel
+for the pinned source and current urban AGEB layer:
+
+| Step | Retained rows | Dropped at this step |
+|---|---:|---:|
+| Raw investigation files | 138,630 | 0 |
+| Keep offence year 2024 | 123,127 | 15,503 |
+| Exclude non-criminal events | 119,666 | 3,461 |
+| Keep valid CDMX coordinates | 112,484 | 7,182 |
+| Deduplicate geolocated records | 112,484 | 0 |
+| Assign to an urban AGEB | **112,285** | 199 |
+
+The transform checks key uniqueness, assigned AGEBs, hour range, CRS and a
+single category per type. Its expected final count allows a **0.5% tolerance**
+around 112,285; the table above is evidence for the pinned inputs, not a fixed
+count for every future source version.
+
 ## 5. PostgreSQL/PostGIS Data Warehouse
 
 Star schema defined in [`sql/01_schema.sql`](sql/01_schema.sql). All geometries are stored in **EPSG:6372** (Mexico ITRF2008 / LCC, metres) so areas are in km² without reprojection.
@@ -169,3 +223,38 @@ merida-urban-intelligence/
 ## 10. Assumptions, data-quality issues and cautions
 
 _TODO (all): temporal mismatch between sources (Census 2020, DENUE 2026, crime 2024), INEGI confidentiality suppression, points outside urban AGEBs, small-population AGEBs, MAUP, spatial association ≠ causation._
+
+### Public-safety interpretation cautions
+
+- **Investigation files and underreporting:** FGJ counts describe reported
+  investigation files, not all crimes or individual victims. Reporting and
+  administrative recording can vary by offence and area; an area with more
+  recorded files cannot automatically be interpreted as having more total crime.
+- **Offence date and reporting lag:** The input is organised by investigations
+  opened in 2024. Filtering `fecha_hecho` to 2024 removes other offence years,
+  but cannot recover 2024 offences whose investigations were opened later.
+  Monthly patterns therefore reflect both occurrence and reporting processes.
+- **Geographic selection:** Of the 119,666 eligible criminal files, 7,182 lack
+  valid study-area coordinates and another 199 valid points fall outside the
+  strict urban-AGEB assignment. The retained sample excludes those records and
+  does not cover all CDMX territory. Missing coordinates and exclusions may vary
+  by offence and area. Unknown hours remain explicit rather than being assigned
+  to midnight.
+- **Analytical labels:** English translations and macro-categories are project
+  classifications, not the official FGJ category system. The raw offence name
+  remains available for auditing. Negligent (`CULPOS`) offences are included in
+  overall counts under `Other`, so total crime must not be read as violent crime.
+- **Population denominators and different dates:** `crime_rate_per_1k` uses
+  2024 files per **1,000 Census 2020 residents**, while DENUE is a later snapshot.
+  These sources do not describe one simultaneous population. Commuters and
+  visitors are absent from resident denominators; rates in commercial/transit
+  areas are not individual victimisation probabilities. Rate-based analyses
+  exclude `low_population = True` by default, and zero denominators yield `NULL`.
+- **Aggregation and interpretation:** AGEB boundaries and aggregation scale can
+  change spatial patterns (MAUP). Area-level associations do not establish
+  individual behaviour or causality. Moran statistics must be interpreted with
+  the stated sample, neighbourhood weights and permutation procedure.
+
+The [search log](notebooks/13_profile_crime.ipynb) records the Mérida assessment
+and instructor decision that led to CDMX. Further discussion is in
+[report section 6](report/sections/6_limitations.md).
