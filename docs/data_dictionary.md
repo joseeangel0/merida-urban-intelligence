@@ -15,11 +15,20 @@ _TODO_
 | `source_key` | smallint PK | Surrogate key |
 | `source_code` | text UK | Key in `src/config.py:SOURCES` and `data/raw/manifest.json` |
 | `source_name`, `publisher`, `url` | text | Official name, publisher and download URL |
-| `version_label` | text | Edition of the dataset (e.g. `CPV 2020`) |
+| `version_label` | text | Edition of the dataset, from `SOURCES[...]['version_label']` |
 | `original_grain` | text | One row of the original file represents … |
-| `sha256` | char(64) | Hash of the downloaded zip (proves the raw file is unchanged) |
+| `sha256` | char(64), nullable | SHA-256 of the downloaded file (zip or CSV) from `manifest.json`; NULL if the source was not downloaded |
 
-**dw.dim_date** — one row per calendar day between the earliest and latest date in the facts.
+Rows (4):
+
+| `source_code` | `version_label` | Used by |
+|---|---|---|
+| `census_ageb_2020_09` | CPV 2020 | `fact_census_ageb` |
+| `denue_09` | DENUE 05/2026 | `fact_business` |
+| `marco_geo_2020_09` | Marco Geoestadístico 2020 | `dim_geography` (lineage only, no FK) |
+| `crime_fgj_2024` | Carpetas de investigación 2024 | `fact_crime_incident` |
+
+**dw.dim_date** — one row per calendar day between the earliest and latest of `stg.business.alta_date` and `stg.crime.incident_date` (`generate_series` in `sql/02_load.sql`). With DENUE 05/2026 the range is 2010-07-01 … 2026-04-01 (5,754 days). Facts with an unknown date have `date_key` NULL.
 
 | Column | Type | Description |
 |---|---|---|
