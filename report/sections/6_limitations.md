@@ -17,9 +17,9 @@ The analytical warehouse integrates three primary empirical sources collected un
 | **Economic Units** | INEGI DENUE (CDMX) | **October 2025 – 2026** | Semi-annual registry snapshot |
 
 ### Methodological Implications
-1. **Denominator Lag in Rate Computations:** Demographic indicators derived from `fact_census_ageb` reflect pre-pandemic residential baselines (March 2020). Calculating 2024 crime rates per 100,000 residents or business-to-population ratios assumes demographic stability over a 4-year interval. However, Mexico City experienced significant post-pandemic demographic restructuring between 2020 and 2024, including intra-urban migration, real-estate gentrification in central corridors (e.g., Cuauhtémoc, Benito Juárez, Miguel Hidalgo), and suburban expansion in peripheral alcaldías.
+1. **Denominator Lag in Rate Computations:** Demographic indicators derived from `fact_census_ageb` reflect pre-pandemic residential baselines (March 2020). Calculating 2024 crime rates per 1,000 residents or business-to-population ratios assumes demographic stability over a 4-year interval. However, Mexico City experienced significant post-pandemic demographic restructuring between 2020 and 2024, including intra-urban migration, real-estate gentrification in central corridors (e.g., Cuauhtémoc, Benito Juárez, Miguel Hidalgo), and suburban expansion in peripheral alcaldías.
 2. **Resident Population vs. Ambient/Floating Population:** The census records night-time resident populations (*de jure* enumeration). In major commercial, financial, and tourist employment hubs (e.g., Centro Histórico, Paseo de la Reforma, Polanco, Santa Fe), the daily ambient population inflates by hundreds of thousands of commuters, workers, and consumers. As a consequence, computing per-capita crime rates using static resident denominators artificially inflates rates in central commercial districts and understates rates in purely residential commuter neighbourhoods.
-3. **Analytical Caution:** Ratios such as `crime_rate_per_100k` should be interpreted strictly as relative territorial exposure indicators, not as individual victimisation probabilities for local residents.
+3. **Analytical Caution:** Ratios such as `crime_rate_per_1k` should be interpreted strictly as relative territorial exposure indicators, not as individual victimisation probabilities for local residents.
 
 ---
 
@@ -76,18 +76,19 @@ The foundational project design was initially targeted at the municipality of **
 ```mermaid
 timeline
     title Evolution of Project Geographic Scope
-    Day 0 (4 Oct 2026) : Search Log Execution : 8 Mérida sources evaluated : No public point-level crime microdata
+    Day 0 (4 Oct 2026) : Search Log Execution : 7 Mérida sources evaluated : No public point-level crime microdata
     Day 1 (5 Oct 2026) : Instructor Consultation : Ban on simulated data reaffirmed : State-level restriction identified
     Day 1 (5 Oct 2026 Evening) : Scope Change Approved : Unanimous relocation to Mexico City (CDMX) : FGJ 2024 microdata adopted
     Day 2 (6 Oct 2026) : Full CDMX ETL Integration : 2,431 Urban AGEBs : 112,285 Geocoded Incidents : Complete Star Schema
 ```
 
 ### Search Log Audit & Decision Rationale
-1. **Exhaustive Evaluation of Mérida Repositories:** As documented in `notebooks/13_profile_crime.ipynb` (§1.1), eight official sources were queried on 4 October 2026:
+1. **Exhaustive Evaluation of Mérida Repositories:** As documented in `notebooks/13_profile_crime.ipynb` (§1.1), seven source groups were checked on 4 October 2026:
    * *SESNSP Open Data:* Provided only monthly, municipal-level totals without geographic coordinates.
    * *FGE Yucatán:* Provided press bulletins and judicial procedural overviews without tabular or spatial microdata.
    * *Yucatán Transparency Portal & Mérida Geoportal:* Contained transport, health, and urban infrastructure layers, but zero public-safety or incident layers.
    * *CEISP Data Observatory:* Archived 104 monthly PDF reports; server endpoints consistently returned `null` for download attempts.
+   * *911 Open Data:* The search found no public georeferenced emergency-call dataset for Yucatán.
    * *Academic Repositories (UADY, CentroGeo, Zenodo, Kaggle):* No public point-level crime microdata existed.
 2. **Academic & Ethical Constraint:** On 5 October 2026, course leadership explicitly ruled out synthetic or simulated datasets:
    > *"No simulated data. If you have municipal-level data, your spatial analysis must stay at state level. For high granularity you can consider hoyodecrimen.com, but working with Mexico City."*
