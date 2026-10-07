@@ -28,7 +28,7 @@ CREATE TABLE dw.dim_source (
     source_name     TEXT NOT NULL,
     publisher       TEXT NOT NULL,
     url             TEXT,
-    version_label   TEXT,                      -- e.g. 'CPV 2020', 'DENUE 05/2026'
+    version_label   TEXT NOT NULL,             -- e.g. 'CPV 2020', 'DENUE 05/2026'
     original_grain  TEXT NOT NULL,
     sha256          CHAR(64)                   -- from data/raw/manifest.json
 );
