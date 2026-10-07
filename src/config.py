@@ -35,6 +35,7 @@ SOURCES = {
     "census_ageb_2020_09": {
         "name": "INEGI Censo de Población y Vivienda 2020 - Principales resultados por AGEB y manzana urbana (Ciudad de México)",
         "publisher": "INEGI",
+        "version_label": "CPV 2020",
         "licence": "INEGI Términos de libre uso de la información",
         "url": "https://www.inegi.org.mx/contenidos/programas/ccpv/2020/datosabiertos/ageb_manzana/ageb_mza_urbana_09_cpv2020_csv.zip",
         "original_grain": "One row per urban AGEB / urban block (with locality and municipality totals)",
@@ -42,6 +43,7 @@ SOURCES = {
     "denue_09": {
         "name": "INEGI DENUE - Directorio Estadístico Nacional de Unidades Económicas (Ciudad de México)",
         "publisher": "INEGI",
+        "version_label": "DENUE 05/2026",
         "licence": "INEGI Términos de libre uso de la información",
         "url": "https://www.inegi.org.mx/contenidos/masiva/denue/denue_09_csv.zip",
         "original_grain": "One row per economic establishment (point, lat/lon)",
@@ -49,6 +51,7 @@ SOURCES = {
     "marco_geo_2020_09": {
         "name": "INEGI Marco Geoestadístico 2020 (Censo 2020) - Ciudad de México",
         "publisher": "INEGI",
+        "version_label": "Marco Geoestadístico 2020",
         "licence": "INEGI Términos de libre uso de la información",
         "url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/marcogeo/889463807469/09_ciudaddemexico.zip",
         "original_grain": "One polygon per geostatistical unit (state, municipality, locality, AGEB, block)",
@@ -56,6 +59,7 @@ SOURCES = {
     "crime_fgj_2024": {
         "name": "FGJ CDMX - Carpetas de investigación 2024 (Portal de Datos Abiertos CDMX; also served by hoyodecrimen.com)",
         "publisher": "Fiscalía General de Justicia de la Ciudad de México",
+        "version_label": "Carpetas de investigación 2024",
         "url": "https://archivo.datos.cdmx.gob.mx/FGJ/carpetas/carpetasFGJ_2024.csv",
         "original_grain": "One row per investigation file (carpeta) opened in 2024: offence, category, date/time, lat/lon",
         "licence": "CC-BY-4.0",
