@@ -43,6 +43,24 @@ Source: [`docs/pipeline.mmd`](docs/pipeline.mmd). Every step is run by `python -
 
 _TODO (each owner): principal cleaning, transformation and spatial-integration decisions per source, including every transformation that changes grain, meaning or geographic representation._
 
+### DENUE economic layer
+
+The DENUE transform reads the complete Mexico City snapshot with Latin-1 encoding
+and preserves identifiers as strings until type conversion. Coordinate validity
+is checked before longitude/latitude points are projected from EPSG:4326 to
+EPSG:6372. Geometry—not DENUE's reported AGEB code—determines study-area
+membership through the shared point-in-polygon operation. The reported state,
+municipality, locality and AGEB codes are retained as `cvegeo_reported` for
+quality auditing.
+
+The snapshot contains 462,732 Mexico City records. Three coordinates outside
+Mexico City are dropped and 461,231 establishments (99.7%) fall inside the
+2,431 urban AGEBs; 99.84% agree with DENUE's reported AGEB. 211,431 of them are
+Retail, across 931 SCIAN classes. `fecha_alta` is interpreted as a registration/start month
+and represented by its first day, not treated as the snapshot date. SCIAN sector
+46 is Retail; sectors 51–56, 61, 62, 71, 72 and 81 are Services; remaining
+sectors are Other. Official combined sectors 31–33 and 48–49 are preserved.
+
 ## 5. PostgreSQL/PostGIS Data Warehouse
 
 Star schema defined in [`sql/01_schema.sql`](sql/01_schema.sql). All geometries are stored in **EPSG:6372** (Mexico ITRF2008 / LCC, metres) so areas are in km² without reprojection.
@@ -94,6 +112,18 @@ Ratios with a zero denominator are `NULL`. `low_population` flags the 55 AGEBs w
 ## 7. Spatial analysis
 
 _TODO (Julio, Nora, Lorena, Valeria, Gustavo): neighbourhood rule, correlation, Global Moran's I, LISA, bivariate Moran's I, findings._
+
+Nora's reproducible spatial workflow uses the 2,348 city-core AGEBs of Mexico
+City (the main locality of each alcaldía). The primary weights are
+row-standardised Queen contiguity; the single Queen island is attached to its
+nearest neighbour. Row-standardised KNN with `k=6` is the sensitivity check.
+Rate indicators (crime rate, PEA rate) exclude the AGEBs with fewer than 100
+residents. `notebooks/32_global_moran_lisa.ipynb` calculates Global Moran's I
+with 999 permutations, compares both neighbourhood rules, produces Moran
+scatterplots, and maps significant Local Moran clusters (HH, LL, HL and LH) at
+α = 0.05 with `src.analysis.spatial_weights.local_clusters` (fixed seed 42, so
+results are reproducible). These statistics describe spatial association and do
+not establish causal relationships.
 
 ## 8. Reproducing the project
 
