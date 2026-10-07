@@ -44,7 +44,49 @@ _TODO: column, description, source variable, unit, handling of suppressed values
 
 ## dim_economic_activity, dim_business_size, fact_business — _owner: Nora_
 
-_TODO_
+**dw.dim_economic_activity** — one row per six-digit SCIAN class represented by
+an establishment inside the study area.
+
+| Column | Type | Description / source |
+|---|---|---|
+| `activity_key` | serial PK | Warehouse surrogate key |
+| `scian_code` | char(6), unique | `codigo_act`; six-digit SCIAN class |
+| `activity_name` | text | `nombre_act`; activity label published by DENUE |
+| `subsector_code` | char(3) | First three digits of `scian_code` |
+| `sector_code` | text | SCIAN sector; official combined values `31-33` and `48-49` are retained |
+| `sector_name` | text | English sector name |
+| `activity_group` | text | `Retail` for sector 46; `Services` for 51–56, 61, 62, 71, 72 and 81; otherwise `Other` |
+
+**dw.dim_business_size** — static lookup for DENUE's published employment
+bands. The original Spanish label is the natural key because DENUE provides a
+range rather than an exact employee count.
+
+| Column | Type | Description |
+|---|---|---|
+| `size_key` | smallserial PK | Warehouse surrogate key |
+| `per_ocu_label` | text, unique | Exact DENUE `per_ocu` label |
+| `employees_min` | integer | Inclusive lower bound |
+| `employees_max` | integer, nullable | Inclusive upper bound; NULL for `251 y más personas` |
+| `size_class` | text | Analytical class: Micro, Small, Medium or Large |
+
+**dw.fact_business** — grain: one DENUE establishment whose point geometry is
+inside a Mexico City urban AGEB. The full state file is spatially joined; reported
+AGEB codes do not determine inclusion.
+
+| Column | Type | Description / source |
+|---|---|---|
+| `business_key` | bigserial PK | Warehouse surrogate key |
+| `denue_id` | bigint, unique | DENUE `id` |
+| `clee` | text | DENUE legal/economic-establishment identifier |
+| `geo_key` | integer FK | AGEB containing the establishment point (`within`) |
+| `activity_key` | integer FK | Six-digit SCIAN class |
+| `size_key` | smallint FK | DENUE employment band |
+| `date_key` | integer FK, nullable | `fecha_alta` month represented as its first calendar day; this is a registration/start month, not the snapshot date |
+| `source_key` | smallint FK | DENUE source lineage |
+| `establishment_name` | text, nullable | `nom_estab` |
+| `cvegeo_reported` | char(13), nullable | `cve_ent + cve_mun + cve_loc + ageb`; retained to audit the spatial assignment |
+| `establishment_count` | smallint | Additive measure, always 1 per fact row |
+| `geom` | Point, EPSG:6372 | Projected DENUE longitude/latitude |
 
 ## dim_crime_type, fact_crime_incident — _owner: Valeria_
 
