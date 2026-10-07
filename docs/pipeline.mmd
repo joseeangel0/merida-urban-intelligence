@@ -3,10 +3,10 @@ flowchart LR
         C["Census 2020<br/>AGEB / block CSV"]
         D["DENUE<br/>establishments CSV"]
         M["Marco Geoestadístico 2020<br/>AGEB polygons SHP"]
-        K["Crime incidents<br/>lat/lon"]
+        K["FGJ CDMX crime 2024<br/>lat/lon CSV"]
     end
     subgraph CLEAN["CLEAN · src/transform"]
-        GEO["geography.py<br/>526 urban AGEBs · EPSG:6372 · area km²"]
+        GEO["geography.py<br/>2,431 urban AGEBs · EPSG:6372 · area km²"]
         CEN["census.py<br/>AGEB rows · * / N/D → NULL"]
         DEN["denue.py<br/>SCIAN groups · size bands"]
         CRI["crime.py<br/>types · date · hour"]

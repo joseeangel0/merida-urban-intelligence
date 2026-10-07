@@ -8,7 +8,7 @@ from src.db import get_engine
 def load_kpis(city_core_only: bool = True, exclude_low_population: bool = True) -> gpd.GeoDataFrame:
     """One row per urban AGEB with every KPI and its polygon (EPSG:6372), from dw.v_kpi_ageb.
 
-    city_core_only          keep Mérida city (cve_loc 0001), the contiguous area used for spatial weights
+    city_core_only          keep the main locality of each alcaldía (cve_loc 0001), the contiguous area used for spatial weights
     exclude_low_population  drop AGEBs with < 100 residents, whose per-capita rates are unstable
     """
     filters = []
