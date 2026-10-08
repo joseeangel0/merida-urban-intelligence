@@ -71,7 +71,22 @@ and [`dim_geography` dictionary](docs/data_dictionary.md#dim_geography--owner-lo
 
 Source: [`docs/pipeline.mmd`](docs/pipeline.mmd). Every step is run by `python -m src.pipeline` (see §8).
 
-_TODO (each owner): principal cleaning, transformation and spatial-integration decisions per source, including every transformation that changes grain, meaning or geographic representation._
+The flow is **RAW → CLEAN → SPATIAL JOIN → PostGIS**. Raw downloads remain
+unchanged in `data/raw/`, with source metadata and SHA-256 digests recorded in
+[`manifest.json`](data/raw/manifest.json). One module per source in
+[`src/transform/`](src/transform/) writes the contracted Parquet outputs;
+[`spatial.py`](src/transform/spatial.py) shares coordinate checks, projection
+and point-to-AGEB assignment. The Census keeps only AGEB-total rows to avoid
+double-counting blocks and higher-level totals, and converts `*` and `N/D` to
+**NULL, never 0**. DENUE establishments become points assigned to urban AGEBs.
+FGJ keeps offences dated in **2024** (`fecha_hecho`) and excludes
+`HECHO NO DELICTIVO` before spatial assignment. Point geometries are projected
+from EPSG:4326 to EPSG:6372; retained business and crime records keep their
+source grain. [`load_staging.py`](src/load/load_staging.py) loads the processed
+files into `stg`; [`02_load.sql`](sql/02_load.sql) resolves keys and loads `dw`,
+whose keys, geometry and totals are checked by
+[`04_validation.sql`](sql/04_validation.sql). The source-specific decisions
+and exclusion counts follow below.
 
 ### Census demographic layer
 
