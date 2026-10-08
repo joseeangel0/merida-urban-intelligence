@@ -2,18 +2,22 @@
 
 Everything each member needs: what to build, which files you own, the data contract your output must follow, a ready-to-paste AI prompt, and the **acceptance tests ("win conditions")** that prove your part is done.
 
-| # | Member | GitHub | Role | Owns |
+| # | Member | GitHub | Role | Status & Owns |
 |---|---|---|---|---|
-| 1 | **Jose Pech** | `joseeangel0` | Repo lead · DW architect | repo setup, `sql/01_schema.sql`, model diagram, `sql/03_views.sql`, `sql/04_validation.sql`, `src/analysis/data.py`, README integration |
-| 2 | **Julio de Aquino** | `pyrawn` | Demographic layer | Census profiling, `src/transform/census.py`, correlation analysis |
-| 3 | **Nora Horta** | `strangelove-t` | Economic layer | DENUE profiling, `src/transform/denue.py`, spatial weights, Global Moran + LISA |
-| 4 | **Lorena Pérez** | `ldpl3012` | Geography & integration | geographic-unit decision, `src/transform/geography.py`, `src/transform/spatial.py`, `src/load/load_staging.py`, `sql/02_load.sql`, KPI maps |
-| 5 | **Valeria Hernández** | `valnix140405` | Public-safety layer | crime source record, `src/transform/crime.py`, crime temporal analysis, bivariate Moran, report section 6 |
-| 6 | **Gustavo Fuentes** | `Audileleach` | Data quality, KPI queries & findings · report lead | source inventory and data-quality register, contract tests (`tests/`), `sql/05_kpi_queries.sql`, LISA hot-spot analysis by alcaldía, alcaldía comparison, report assembly |
+| 1 | **Jose Pech** | `joseeangel0` | Repo lead · DW architect | **Active:** repo setup, `sql/01_schema.sql`, model diagram, `sql/03_views.sql`, `sql/04_validation.sql`, `src/analysis/data.py`, execute NB 32, finalize report sec. 4, README integration |
+| 2 | **Julio de Aquino** | `pyrawn` | Demographic layer | **Inactive (D3):** Phase 1 profiling done (`11_profile_census.ipynb`). Transform completed by Gustavo (PR #19); correlation reassigned to Lorena; report sec. 1 to Valeria |
+| 3 | **Nora Horta** | `strangelove-t` | Economic layer | **Inactive (D3):** Phase 1 profiling, `denue.py` transform, and `spatial_weights.py` merged. LISA notebook execution & report sec. 4 finalized by Jose |
+| 4 | **Lorena Pérez** | `ldpl3012` | Geography & integration | **Active:** geographic-unit decision, `src/transform/geography.py`, `src/transform/spatial.py`, `src/load/load_staging.py`, `sql/02_load.sql`, `notebooks/30_kpi_maps.ipynb`, `notebooks/31_correlation.ipynb`, report sec. 2 |
+| 5 | **Valeria Hernández** | `valnix140405` | Public-safety layer | **Active:** crime source record, `src/transform/crime.py`, `notebooks/33_crime_patterns_bivariate.ipynb`, report sec. 1 & 6 |
+| 6 | **Gustavo Fuentes** | `Audileleach` | Data quality, KPI queries & findings · report lead | **Active:** census transform (PR #19), source inventory (`data_sources.md`), `14_integration_check.ipynb`, contract tests (`tests/`), `sql/05_kpi_queries.sql`, `notebooks/34_lisa_hotspots.ipynb`, `notebooks/35_alcaldia_comparison.ipynb`, report sec. 5 & assembly (`technical_report.pdf`) |
 
 > 🔄 **Scope change — 5 Oct 2026 (D1 evening).** The instructor answered our crime-data request: *no simulated data; with municipal-level crime data the spatial analysis would have to stay at state level; for high granularity use hoyodecrimen.com, but working with Mexico City.* We therefore keep the **urban AGEB** design and move the study area from Mérida to **Mexico City (CDMX, 16 alcaldías)**. Every contract below has been updated (sources, reference values, paths `31 → 09`). The Mérida work already merged (Lorena's assessment, Jose's search log) stays as Phase 1 evidence of the data assessment. **Gustavo Fuentes joins the team** (§4.6) and takes report assembly from Valeria and builds the alcaldía-level and hot-spot analysis on top of Nora's LISA.
 >
-> **If you already ran the setup:** `git pull`, then `python -m src.pipeline download` (new keys `*_09` and `crime_fgj_2024`). The old Yucatán folders in `data/raw/` (`denue_31`, `census_ageb_2020`, `marco_geo_2020`) can be deleted.
+> ⚡ **Phase 3 Active Squad & Workload Rebalancing — 8 Oct 2026 (D3).** Nora and Julio have stepped back from active development. To finish on schedule, the remaining 4 active members (**Jose, Lorena, Valeria, Gustavo**) absorb all pending tasks and work in parallel without blocking dependencies:
+> - **Lorena**: Completes `dim_geography` in `docs/data_dictionary.md`, `notebooks/30_kpi_maps.ipynb`, absorbs `notebooks/31_correlation.ipynb`, and writes report section 2.
+> - **Valeria**: Shares FGJ crime file (`crime_fgj_2024.csv`), completes `notebooks/33_crime_patterns_bivariate.ipynb`, and absorbs report section 1.
+> - **Gustavo**: Writes `docs/data_sources.md`, `notebooks/14_integration_check.ipynb`, `sql/05_kpi_queries.sql`, `notebooks/34_lisa_hotspots.ipynb`, `notebooks/35_alcaldia_comparison.ipynb`, report section 5, and assembles `report/technical_report.pdf`.
+> - **Jose** (Lead): Runs and saves `notebooks/32_global_moran_lisa.ipynb` outputs, finalizes report section 4, integrates README §7, verifies clean clone, and tags `v1.0`.
 
 ---
 
@@ -162,132 +166,69 @@ Paste the prompt into your AI *from inside the repository folder*.
 - `sql/04_validation.sql`: `DO $$ ... RAISE EXCEPTION ... $$` blocks so the pipeline **fails** when a check fails (row counts vs staging, orphan keys, Σ population, Σ businesses, every KPI computable).
 - Review and merge PRs daily.
 
-**Phase 3 (D3)**
-- `src/analysis/data.py` (`load_kpis`) — publish early on D2 so analysts can start.
-- README integration (§5, §6, §8, §9), data dictionary for `dim_source`, `dim_date`, `dim_hour` and the views.
-- Final run from a clean clone, tag `v1.0`.
-- Report: section 3 "Data Warehouse architecture".
+**Phase 3 (D3) — Active closeout & integration**
+- `src/analysis/data.py` (`load_kpis`) — published and working with `dw.v_kpi_ageb`.
+- Run and save outputs for `notebooks/32_global_moran_lisa.ipynb` (Nora's notebook, already written): Global Moran for at least 2 indicators, with 999 permutations, I, E[I], permutation z-score, pseudo p-value and n; compare Queen against KNN-6 on the same indicator-specific sample and save Moran scatterplots. Fix NumPy's seed to 42 before each Global Moran test.
+- Run LISA for at least 2 indicators using the shared `local_clusters(..., permutations=999, seed=42)`; save HH / LL / HL / LH / not-significant maps to `outputs/maps/` and export the significant-AGEB list with indicator, cluster and pseudo p-value. Explain the neighbourhood rules and avoid causal claims.
+- Finalize `report/sections/4_kpis_spatial_analysis.md` with the Global Moran / LISA table from notebook 32.
+- Report section 3 "Data Warehouse architecture" (`report/sections/3_dw_architecture.md`) — drafted; final reconciliation pending. Replace the `fact_crime_incident` `_TBD_` with the verified populated-warehouse count and resolve `Figure X` / `Figure Y` references with Gustavo's report assembly before marking it complete.
+- README integration (§7 spatial analysis findings, §8 reproduction, §9 structure), clean clone test, tag `v1.0`.
 
-**AI prompt (Phase 2–3):**
+**AI prompt (Phase 3 closeout):**
 ```
-You are helping Jose Pech in the repository merida-urban-intelligence (PostgreSQL/PostGIS geospatial
-data warehouse for Mexico City). First read README.md, docs/team/TEAM_PLAN.md (sections 0, 3 and 4.1),
-sql/01_schema.sql and src/pipeline.py.
-Tasks, one commit each:
-1. docs/warehouse_model.mmd: Mermaid erDiagram of every dw table with PK/FK and grain notes;
-   render it to docs/warehouse_model.png (mermaid-cli via npx or mermaid.live).
-2. sql/03_views.sql: create dw.v_kpi_ageb with EXACTLY the columns of the contract in TEAM_PLAN §3.4
-   (rates use NULLIF to avoid division by zero; densities per km2; businesses_per_1k and crime_rate_per_1k
-   per 1,000 residents; crimes_per_100_businesses; dominant_sector = sector with most establishments,
-   ties broken alphabetically; low_population = pop_total < 100), plus dw.v_crime_by_type_time and
-   dw.v_business_by_sector. Views must be re-runnable (CREATE OR REPLACE / DROP VIEW IF EXISTS).
-3. sql/04_validation.sql: DO blocks that RAISE EXCEPTION when: dw row counts differ from stg; any fact
-   has an orphan key; v_kpi_ageb has != 2431 rows; sum(pop_total) != 9138524; any KPI column is entirely NULL.
-   End with RAISE NOTICE summarising the counts.
-4. src/analysis/data.py: load_kpis(city_core_only=True, exclude_low_population=True) using
-   geopandas.read_postgis and src.db.get_engine().
-Do not edit files owned by other members (see TEAM_PLAN §4). Run `python -m src.pipeline all` before finishing.
+You are helping Jose Pech in the repository merida-urban-intelligence. Read README.md and docs/team/TEAM_PLAN.md §4.1.
+Tasks:
+1. Run notebooks/32_global_moran_lisa.ipynb so all code cells have execution counts and outputs. Require Global Moran for >= 2 indicators with 999 permutations, I, E[I], z_sim, p_sim and n, Queen vs KNN-6 on the same indicator-specific sample, and saved Moran scatterplots. Seed NumPy to 42 before each Global Moran test. Require LISA for >= 2 indicators through local_clusters(..., permutations=999, seed=42), saved HH/LL/HL/LH/ns maps in outputs/maps/, and an exported significant-AGEB list with indicator, cluster and p_sim. Document weights and interpret association without causal claims.
+2. In report/sections/4_kpis_spatial_analysis.md, finalize the brief summary table of Moran I values and LISA cluster counts.
+3. In README.md §7, replace the _TODO_ with a concise summary of the spatial analysis findings.
+4. Finalize report/sections/3_dw_architecture.md: query the populated warehouse for the crime fact count, replace _TBD_, and coordinate final figure numbering with Gustavo to replace Figure X and Figure Y. Do not mark the section complete until these checks pass.
+5. Verify clean clone execution: python -m src.pipeline all && pytest tests/.
 ```
 
 **Win conditions**
 - [ ] A teammate can go from `git clone` to a populated DW with only the README commands.
 - [ ] `python -m src.pipeline all` ends with the validation NOTICE and no exception.
 - [ ] `SELECT count(*) FROM dw.v_kpi_ageb` = 2,431; `SELECT sum(pop_total) FROM dw.v_kpi_ageb` = 9,138,524.
-- [ ] Diagram shows every table, PK/FK and grain.
-- [ ] Each of the 6 members has ≥ 6 linked commits on `main` spread across D1–D3 (`git shortlog -sne main`).
+- [ ] `notebooks/32_global_moran_lisa.ipynb` committed with outputs and maps saved to `outputs/maps/`.
+- [ ] Global Moran for at least 2 indicators: 999 permutations, seed 42, I, E[I], permutation z-score, pseudo p-value and n; Queen vs KNN-6 comparison on identical indicator-specific samples; scatterplots saved and non-causal interpretation written.
+- [ ] LISA for at least 2 indicators: shared `local_clusters`, 999 permutations, seed 42, HH / LL / HL / LH / not-significant maps saved, and significant-AGEB list exported with indicator, cluster and pseudo p-value.
+- [ ] Report sections 3 and 4 completed; section 3 has a verified crime fact count and resolved figure references, with no `_TBD_` or `Figure X` / `Figure Y` placeholders.
+- [ ] Tag `v1.0` created on a clean working tree.
 
-**Suggested commits:** `chore(repo): project scaffold…` · `sql(dw): star schema…` · `docs(dw): dimensional model diagram` · `sql(kpi): KPI views` · `test(dw): validation queries` · `feat(analysis): load_kpis helper` · `docs(readme): DW model and reproduction`.
-
----
-
-### 4.2 Julio de Aquino — Demographic layer
-
-**Phase 1 (D1)** — `notebooks/11_profile_census.ipynb`
-- Load `data/raw/census_ageb_2020_09/.../conjunto_de_datos_ageb_urbana_09_cpv2020.csv` (read every column as `str`).
-- Explain the file structure: block rows vs AGEB total rows (`MZA='000'`) vs locality/municipality totals (`AGEB='0000'`).
-- Filter CDMX AGEB rows, profile the KPI variables (missing, `*`, `N/D`, zeros, distributions), compare Σ AGEB population with the state total, and by alcaldía.
-- Write the **variable list** required by the demographic KPIs (variable → KPI → unit).
-
-**Phase 2 (D2)** — `src/transform/census.py`
-- `run()`: filter → build `cvegeo = ENTIDAD + MUN + LOC + AGEB` → drop (and count) the 2 AGEBs without a polygon in `ageb.parquet` → rename to the `dw.fact_census_ageb` column names → `*`/`N/D` → NULL → numeric types → `n_suppressed_fields` → write `data/processed/census_ageb.parquet`.
-- Data dictionary section for `fact_census_ageb`.
-
-**Phase 3 (D3)** — `notebooks/31_correlation.ipynb`
-- Data from `src.analysis.data.load_kpis()` only.
-- ≥ 3 relationships (suggested: population density vs business density; crime rate vs businesses per 1k; PEA rate vs crime rate; % 65+ vs service density). Check normality/outliers → justify **Spearman** vs Pearson; report coefficient, p-value, n; scatter plots to `outputs/figures/`.
-- Sensitivity: with vs without `low_population` AGEBs.
-
-**AI prompt (Phase 1–2):**
-```
-You are helping Julio de Aquino in the repository merida-urban-intelligence. First read README.md,
-docs/team/TEAM_PLAN.md (sections 0, 3 and 4.2), sql/01_schema.sql (table dw.fact_census_ageb) and src/config.py.
-Phase 1: create notebooks/11_profile_census.ipynb that profiles the INEGI Census 2020 AGEB file in
-data/raw/census_ageb_2020_09 (read as dtype=str). Explain the row hierarchy (block, AGEB total MZA='000',
-locality/municipality totals), keep the CDMX AGEB rows, quantify '*' and 'N/D' per KPI variable,
-show distributions, compare the AGEB population sum with the municipality total, and end with a markdown
-table "source variable -> KPI -> unit". Expected: 2,433 AGEB rows (2,431 with a polygon), sum POBTOT = 9,138,524 for the 2,431.
-Phase 2: create src/transform/census.py with run() that writes data/processed/census_ageb.parquet with
-column cvegeo (13 chars) plus EXACTLY the measure columns of dw.fact_census_ageb (same names), suppressed
-values as NULL (never 0), nullable integer dtypes (Int64), and n_suppressed_fields. Add asserts for the
-win conditions in TEAM_PLAN §4.2. Do not modify files owned by other members. Commit in small steps.
-```
-
-**Win conditions**
-- [ ] `census_ageb.parquet`: 2,431 rows, `cvegeo` unique, all 13 chars, all present in `ageb.parquet`.
-- [ ] Σ `pop_total` = 9,138,524; no `pop_total` NULL; suppressed values are NULL, not 0.
-- [ ] Σ `pea` = 5,061,682 and Σ `pop_12_plus` = 7,858,894.
-- [ ] Notebook states why AGEB rows ≠ state total (64,312 residents outside urban AGEBs + 7,108 in the 2 AGEBs without polygon).
-- [ ] Correlation notebook: ≥ 3 relationships, method justified, n reported, figures saved, interpretation without causal language.
-
-**Suggested commits:** `analysis(census): profiling notebook` · `docs(census): KPI variable list` · `feat(census): AGEB census transform` · `docs(census): data dictionary` · `analysis(spatial): correlation analysis` · `docs(report): problem and data sources section`.
-
-**README/report:** README §2 demographic row + §4 census decisions; report section 1 "Problem and data sources".
+**Suggested commits:** `analysis(spatial): execute global moran and lisa notebook` · `docs(report): finalize spatial kpis report section` · `docs(readme): spatial findings and release instructions` · `chore(repo): release tag v1.0`.
 
 ---
 
-### 4.3 Nora Horta — Economic layer
+### 4.2 Julio de Aquino — Demographic layer (Inactive — contributions recorded)
 
-**Phase 1 (D1)** — `notebooks/12_profile_denue.ipynb`
-- Load `data/raw/denue_09/conjunto_de_datos/denue_inegi_09_.csv` (**`encoding="latin-1"`**, dtype `str`).
-- Profile: coordinates (nulls, ranges), duplicated `id`, `codigo_act` (SCIAN) by sector, `per_ocu` bands, `fecha_alta` (snapshot date vs. registration date).
-- Define the SCIAN → sector → `activity_group` mapping (retail = 46; services = 51–56, 61, 62, 71, 72, 81). Sector names in English, include combined sectors 31-33 and 48-49.
+**Phase 1 (D1) — Done ✅**
+- Profiling merged in `notebooks/11_profile_census.ipynb` (PR #9).
+- Census variable mapping table documented.
 
-**Phase 2 (D2)** — `src/transform/denue.py`
-- `run()`: whole-state DENUE → `spatial.points_from_latlon` → `spatial.assign_ageb` (the **geometry** decides membership, not `cve_mun`) → `cvegeo_reported = '31' + cve_mun + cve_loc + ageb` → `alta_date` from `fecha_alta` (`YYYY-MM` → 1st of month) → write `business.parquet` and `economic_activity.parquet`.
-- Data dictionary for `dim_economic_activity`, `dim_business_size`, `fact_business`.
+**Phase 2 (D2) — Done ✅ (Completed by Gustavo, PR #19)**
+- `src/transform/census.py` implemented, writing `data/processed/census_ageb.parquet` (2,431 rows, Σ pop = 9,138,524).
+- Data dictionary section for `dw.fact_census_ageb` filled in `docs/data_dictionary.md`.
+- Unit tests merged in `tests/test_census.py` (37 tests passing).
 
-**Phase 3 (D3)** — `src/analysis/spatial_weights.py` + `notebooks/32_global_moran_lisa.ipynb`
-- `build_weights(gdf, kind="queen" | "knn", k=6)`: row-standardised; for Queen attach islands to nearest neighbour (`libpysal.weights.attach_islands`). Shared with Valeria and Gustavo — **publish it first thing on D3** (or late D2), they depend on it.
-- Global Moran's I (esda, 999 permutations) for ≥ 2 indicators (suggested 4: business density, crime rate, population density, PEA rate), Queen vs KNN-6 table, Moran scatterplots.
-- `local_clusters(gdf, column, w, permutations=999, alpha=0.05, seed=42)` in the same module: Local Moran's I returning one label per row (`HH`, `LL`, `HL`, `LH`, `ns`) plus `p_sim`, aligned with the input rows. **Gustavo reuses it** (§4.6), so publish it together with `build_weights`.
-- LISA for ≥ 2 indicators: cluster maps (HH, LL, HL, LH, not significant) to `outputs/maps/`, list of significant AGEBs.
+**Phase 3 (D3) — Reassigned to Active Squad**
+- `notebooks/31_correlation.ipynb`: Reassigned to **Lorena Pérez** (§4.4).
+- Report section 1 "Problem and data sources": Reassigned to **Valeria Hernández** (§4.5).
 
-**AI prompt (Phase 1–2):**
-```
-You are helping Nora Horta in the repository merida-urban-intelligence. First read README.md,
-docs/team/TEAM_PLAN.md (sections 0, 3 and 4.3), sql/01_schema.sql (dim_economic_activity, dim_business_size,
-fact_business) and src/transform/spatial.py.
-Phase 1: notebooks/12_profile_denue.ipynb profiling INEGI DENUE Ciudad de México (data/raw/denue_09, encoding latin-1,
-dtype str): coordinates, duplicated ids, SCIAN sectors (first 2 digits), per_ocu bands, fecha_alta; define the
-SCIAN sector mapping with English sector names (combined sectors 31-33, 48-49) and activity_group
-(Retail = 46; Services = 51,52,53,54,55,56,61,62,71,72,81; Other = rest), justified in markdown.
-Phase 2: src/transform/denue.py with run() that uses spatial.points_from_latlon and spatial.assign_ageb on the
-WHOLE state file, and writes data/processed/business.parquet and economic_activity.parquet with EXACTLY the
-columns of TEAM_PLAN §3.2. Report kept/dropped counts and the agreement % between cvegeo and cvegeo_reported.
-Add asserts for the win conditions in TEAM_PLAN §4.3. Do not modify files owned by others. Commit in small steps.
-```
+---
 
-**Win conditions**
-- [ ] `business.parquet`: 461,231 ± 50 rows, `denue_id` unique, every `cvegeo` in `ageb.parquet`, CRS 6372, no duplicates after the join.
-- [ ] Agreement `cvegeo == cvegeo_reported` ≥ 99.5 % (reference 99.8 %), mismatches explained (boundary points).
-- [ ] Every `scian_code` in `business.parquet` exists in `economic_activity.parquet`; every `per_ocu_label` matches `dw.dim_business_size`.
-- [ ] Retail ≈ 211.4 k establishments; the sector table is in the notebook.
-- [ ] Moran notebook: I, E[I], z, pseudo p-value per indicator, Queen vs KNN comparison, interpretation; LISA maps saved.
-- [ ] `build_weights` and `local_clusters` merged by D3 12:00 (Valeria and Gustavo depend on them).
+### 4.3 Nora Horta — Economic layer (Inactive — contributions recorded)
 
-**Suggested commits:** `analysis(denue): profiling notebook` · `feat(denue): SCIAN sector mapping` · `feat(denue): DENUE transform with spatial join` · `docs(denue): data dictionary` · `feat(spatial): spatial weights builder` · `analysis(spatial): global Moran` · `analysis(spatial): LISA clusters` · `docs(report): KPIs and spatial analysis section`.
+**Phase 1 (D1) — Done ✅**
+- Profiling merged in `notebooks/12_profile_denue.ipynb` (PR #7).
 
-**README/report:** README §2 economic row, §4 DENUE decisions, §7 Moran/LISA; report section 4 "Key KPIs and spatial analysis".
+**Phase 2 (D2) — Done ✅**
+- `src/transform/denue.py` implemented, writing `business.parquet` (461,231 rows) and `economic_activity.parquet` (PR #7).
+- Data dictionary sections for `dim_economic_activity`, `dim_business_size`, `fact_business` completed.
+- `src/analysis/spatial_weights.py` (`build_weights`, `local_clusters`) implemented and merged.
+
+**Phase 3 (D3) — Reassigned to Active Squad**
+- `notebooks/32_global_moran_lisa.ipynb`: Drafted; execution, cell outputs and map saving reassigned to **Jose Pech** (§4.1), including the full Global Moran / LISA acceptance criteria now listed there.
+- Report section 4 "Key KPIs and spatial analysis": Drafted; final summary table reassigned to **Jose Pech** (§4.1).
 
 ---
 
@@ -304,45 +245,30 @@ Add asserts for the win conditions in TEAM_PLAN §4.3. Do not modify files owned
 - `sql/02_load.sql`: `stg.*` → `dw.*` (keys, `dim_date` via `generate_series`, `ST_Multi` for geometries, `TRUNCATE ... RESTART IDENTITY CASCADE` first so it is re-runnable).
 - Data dictionary for `dim_geography`.
 
-**Phase 3 (D3)** — `notebooks/30_kpi_maps.ipynb`
-- Choropleth maps (quantiles, `mapclassify`) of ≥ 6 KPIs across the three layers, from `load_kpis()`, saved in `outputs/maps/`. Small-multiples figure for the report. Maps only — the tabular comparison of alcaldías is Gustavo's (§4.6).
+**Phase 3 (D3) — Active deliverables**
+- `docs/data_dictionary.md`: Complete the `## dim_geography` section (replaces `_TODO_`).
+- `notebooks/30_kpi_maps.ipynb`: Choropleth maps (quantiles, `mapclassify`) of ≥ 6 KPIs across the three layers, from `load_kpis()`, saved in `outputs/maps/`. Small-multiples figure for the report.
+- `notebooks/31_correlation.ipynb` *(absorbed from Julio)*: Read via `load_kpis()`, test ≥ 3 pairs (population density vs business density, crime rate vs businesses per 1k, PEA rate vs crime rate), justify Spearman vs Pearson, report $r$, p-value, $n$, sensitivity with/without `low_population`, save figures to `outputs/figures/`.
+- Report section 2 "Geographic integration strategy" (`report/sections/2_geographic_integration.md`): candidate unit assessment (justifying urban AGEB), CRS EPSG:6372, and spatial join results (% retained/dropped).
 
-**AI prompt (Phase 1):**
+**AI prompt (Phase 3):**
 ```
-You are helping Lorena Pérez in the repository merida-urban-intelligence. First read README.md,
-docs/team/TEAM_PLAN.md (sections 0, 3 and 4.4), sql/01_schema.sql (dim_geography) and src/config.py.
-1. notebooks/10_geographic_assessment.ipynb: compare candidate geographic units (municipality, locality, urban
-   AGEB, block, colonia, hex grid) in a decision table (census availability, official polygons, shared key,
-   resolution, confidentiality suppression) and justify urban AGEB. Load 09a.shp, 09l.shp and 09mun.shp from
-   data/raw/marco_geo_2020_09/conjunto_de_datos with geopandas: report CRS, geometry validity, CVEGEO structure;
-   keep CVE_ENT='09' (all alcaldías); map the 2,431 AGEBs to outputs/maps/00_study_area.png; test point-in-polygon with a
-   DENUE sample (data/raw/denue_09, latin-1).
-2. src/transform/geography.py run() -> data/processed/ageb.parquet with EXACTLY the columns of TEAM_PLAN §3.2
-   (EPSG:6372, MultiPolygon, area_km2 from the projected geometry, loc_name from 09l.shp).
-3. src/transform/spatial.py implementing EXACTLY the API in TEAM_PLAN §3.3.
-Add asserts for the win conditions in TEAM_PLAN §4.4. Do not modify files owned by others. Commit in small steps.
-```
-
-**AI prompt (Phase 2):**
-```
-Continue as Lorena's assistant. Read docs/team/TEAM_PLAN.md §3.4 and sql/01_schema.sql.
-1. src/load/load_staging.py run(): write every file in data/processed to stg.<name> with geopandas to_postgis /
-   pandas to_sql (if_exists="replace"), and stg.source from data/raw/manifest.json + src/config.SOURCES.
-2. sql/02_load.sql: re-runnable load from stg.* into dw.* (TRUNCATE dw facts and non-static dims RESTART
-   IDENTITY CASCADE; insert dim_source, dim_geography (ST_Multi, SRID 6372), dim_date (generate_series between
-   min and max dates of stg.business and stg.crime), dim_economic_activity, dim_crime_type, then the three facts
-   resolving surrogate keys by natural key). Unknown hour -> hour_key -1.
-Run `python -m src.pipeline schema stage load` and show the row counts per table.
+You are helping Lorena Pérez in the repository merida-urban-intelligence (Mexico City Urban Intelligence DW).
+Read README.md, docs/team/TEAM_PLAN.md §4.4, and sql/01_schema.sql.
+Tasks, one commit each on branch lorena/<task>:
+1. docs/data_dictionary.md: fill "## dim_geography — _owner: Lorena_" completely. Document table grain (one row per urban AGEB in CDMX, 2,431 rows), PK geo_key, cvegeo (13 chars), cve_ent, cve_mun, mun_name (16 alcaldías), cve_loc, loc_name, cve_ageb, is_city_core (2,348 core), area_km2 (total 792.15 km2), and geom (MultiPolygon EPSG:6372).
+2. notebooks/30_kpi_maps.ipynb: load data ONLY via `from src.analysis.data import load_kpis`. Generate choropleth maps for at least 6 KPIs: pop_density_km2, pea_rate, business_density_km2, retail_density_km2, crime_rate_per_1k, crimes_per_100_businesses using mapclassify quantiles (k=5). Save individual maps to outputs/maps/ and create a combined 2x3 small-multiples figure (outputs/figures/kpi_choropleths_summary.png).
+3. notebooks/31_correlation.ipynb: load data via `load_kpis(city_core_only=True, exclude_low_population=True)`. Test >= 3 pairs (pop_density_km2 vs business_density_km2, crime_rate_per_1k vs businesses_per_1k, pea_rate vs crime_rate_per_1k). Check normality/outliers, compare Spearman vs Pearson, report sample size, coefficient, and p-value. Test sensitivity including the low-population AGEBs. Save scatter plots to outputs/figures/.
+4. report/sections/2_geographic_integration.md: document unit comparison (municipality vs locality vs colonia vs hex grid vs urban AGEB), CRS selection (EPSG:6372), and spatial join results (DENUE: 99.7% captured; FGJ 2024: 93.8% captured).
 ```
 
 **Win conditions**
-- [ ] `ageb.parquet`: 2,431 rows, `cvegeo` unique, 2,348 `is_city_core`, 16 `mun_name` values, all valid, EPSG:6372, Σ `area_km2` = 792.15 ± 0.1.
-- [ ] `spatial.assign_ageb` on the DENUE CDMX file keeps 461,231 points and returns no duplicates.
-- [ ] After `stage load`: `dw.dim_geography` = 2,431, and every `dw` table count equals its `stg` source (facts) — validated by `04_validation.sql`.
-- [ ] Re-running `python -m src.pipeline schema stage load` twice gives identical counts.
-- [ ] ≥ 6 KPI maps with legend, title, units and north/scale or basemap.
+- [ ] `docs/data_dictionary.md`: `dim_geography` section fully filled (no `_TODO_`).
+- [ ] `notebooks/30_kpi_maps.ipynb`: Executed with cell outputs. ≥ 6 KPI maps with legend, title, units and scale/basemap.
+- [ ] `notebooks/31_correlation.ipynb`: Executed with cell outputs. ≥ 3 relationships, Spearman justified, sensitivity evaluated, figures saved.
+- [ ] Report section 2 delivered to `report/sections/2_geographic_integration.md`.
 
-**Suggested commits:** `analysis(geo): geographic unit assessment` · `feat(geo): AGEB polygons transform` · `feat(geo): shared point-in-polygon API` · `feat(dw): staging loader` · `sql(dw): load staging into star schema` · `docs(geo): data dictionary` · `analysis(maps): KPI choropleths` · `docs(report): geographic integration section`.
+**Suggested commits:** `docs(geo): document dim_geography in data dictionary` · `analysis(maps): kpi choropleth mapping` · `analysis(spatial): demographic and economic correlations` · `docs(report): geographic integration section`.
 
 **README/report:** README §3 Geographic strategy (full), §4 spatial join; report section 2 "Geographic integration strategy".
 
@@ -380,39 +306,34 @@ Then `notebooks/13_profile_crime.ipynb`:
 - `run()`: read `data/raw/crime_fgj_2024/crime_fgj_2024.csv` (dtype `str`; the downloader stores the published `carpetasFGJ_2024.csv` under the source key) → `source_incident_id` (§3.1) → filters (§3.1) → harmonise crime types to English (`crime_type` from `delito`, `crime_category` from the accent-normalised `delito`, one category per `crime_type` (`categoria_delito` is `DELITO DE BAJO IMPACTO` for 87 % of rows): e.g. `Property` / `Violent` / `Sexual` / `Other`, documented in a mapping table) → `incident_date` from `fecha_hecho`, `incident_hour` from `hora_hecho` (−1 if unknown) → `points_from_latlon` → `assign_ageb` → `crime.parquet` (contract §3.2). Remove exact duplicates among rows with valid coordinates (same `delito`, date, hour, coordinates; pandas treats empty coordinates as equal, so dedup after the coordinate filter) and document how many.
 - Data dictionary for `dim_crime_type`, `fact_crime_incident`.
 
-**Phase 3 (D3)** — `notebooks/33_crime_patterns_bivariate.ipynb`
-- Incidents by type and time (month, weekday, time band) from `dw.v_crime_by_type_time` — charts to `outputs/figures/`.
-- **Bivariate Moran's I** (`esda.Moran_BV`, 999 permutations) for ≥ 1 pair, e.g. business density vs crime rate, using Nora's `build_weights`; bivariate LISA map optional. Explain the neighbourhood rule and that association ≠ causation.
-- Report section 6 "Limitations and interpretation cautions" (`report/sections/6_limitations.md`): temporal mismatch (Census 2020, DENUE 2025–26, crime 2024), reported crime ≠ all crime, suppression, MAUP, scope change from Mérida.
+**Phase 3 (D3) — Active deliverables**
+- Share/distribute `crime_fgj_2024.csv` (SHA-256 `2ac3f171...`) so teammates can run full pipeline loads locally.
+- `notebooks/33_crime_patterns_bivariate.ipynb`:
+  - Temporal patterns of crime (by month, weekday, and time band) from `load_view('v_crime_by_type_time')` — charts to `outputs/figures/`.
+  - **Bivariate Moran's I** (`esda.moran.Moran_BV`, 999 permutations, seed 42) for business density vs crime rate using `load_kpis()` and `build_weights()`; bivariate Moran scatterplot and cluster interpretation (association ≠ causation).
+- Report section 1 "Problem and data sources" (`report/sections/1_problem_data_sources.md` — *absorbed from Julio*): problem statement, 4 datasets, temporal coverage.
+- Report section 6 "Limitations and interpretation cautions" (`report/sections/6_limitations.md`): completed and merged ✅.
 
-**AI prompt (Phase 1–2):**
+**AI prompt (Phase 3):**
 ```
-You are helping Valeria Hernández in the repository merida-urban-intelligence (now a Mexico City data warehouse).
-Read docs/team/TEAM_PLAN.md (sections 0, 3 and 4.5), sql/01_schema.sql (dim_crime_type, fact_crime_incident),
-src/config.py and src/transform/spatial.py.
-Phase 1: notebooks/13_profile_crime.ipynb profiling data/raw/crime_fgj_2024/crime_fgj_2024.csv (dtype=str):
-explain fecha_inicio vs fecha_hecho, profile coordinates, offence years, categoria_delito, HECHO NO DELICTIVO,
-duplicates and unknown hours; apply the filters of TEAM_PLAN §3.1 with counts; run spatial.assign_ageb and end
-with a funnel table. Include the search log and the instructor reply from §4.5 as markdown.
-Phase 2: src/transform/crime.py with run() that applies the same rules, builds source_incident_id as
-'fgj2024-<row number>', harmonises crime types to English with one crime_category per crime_type (normalise
-accents first; mapping table in the code),
-parses incident_date and incident_hour (-1 when unknown), removes exact duplicates among geolocated rows (report how many), builds
-points with spatial.points_from_latlon, assigns AGEBs with spatial.assign_ageb and writes
-data/processed/crime.parquet with EXACTLY the contract columns. Add asserts for the win conditions in
-TEAM_PLAN §4.5. Do not modify files owned by others. Commit in small steps.
+You are helping Valeria Hernández in the repository merida-urban-intelligence (Mexico City Urban Intelligence DW).
+Read README.md, docs/team/TEAM_PLAN.md §4.5, and sql/01_schema.sql.
+Tasks, one commit each on branch valeria/<task>:
+1. notebooks/33_crime_patterns_bivariate.ipynb:
+   - Part 1: Temporal analysis. Load view dw.v_crime_by_type_time with `from src.analysis.data import load_view; df = load_view('v_crime_by_type_time')`. Plot monthly trends, day-of-week, and time bands (Morning, Afternoon, Evening, Night) by crime category. Save figure to outputs/figures/crime_temporal_patterns.png.
+   - Part 2: Bivariate spatial association. Load data via `from src.analysis.data import load_kpis; gdf = load_kpis(city_core_only=True, exclude_low_population=True)`. Build Queen weights with `from src.analysis.spatial_weights import build_weights; w = build_weights(gdf, kind="queen")`. Calculate Bivariate Moran's I using `import numpy as np; from esda.moran import Moran_BV; np.random.seed(42); bv = Moran_BV(gdf['business_density_km2'].to_numpy(), gdf['crime_rate_per_1k'].to_numpy(), w, permutations=999)`. Moran_BV does not accept a seed argument; set NumPy's seed immediately before each test. Plot the Moran scatterplot and report bv.I, bv.p_sim and bv.z_sim. Explain neighborhood rule and that association != causation. Save figure to outputs/figures/bivariate_moran_business_crime.png.
+2. report/sections/1_problem_data_sources.md: write report Section 1 "Problem and data sources". Explain the urban analytical problem, the 4 selected official sources (Census 2020, DENUE 05/2026, Marco Geo 2020, FGJ Crime 2024), their grains, and temporal coverage mismatch.
 ```
 
 **Win conditions**
-- [ ] Search log, instructor reply and selected source (URL, date, licence, grain) recorded in the notebook.
-- [ ] `crime.parquet` follows the contract; ≈ 112 k rows; `source_incident_id` unique; every `cvegeo` in `ageb.parquet`; `incident_hour` within −1…23; all `incident_date` in 2024; CRS 6372.
-- [ ] Notebook reports the funnel table (rows read → … → loaded).
-- [ ] Bivariate Moran: I, pseudo p-value, permutations, weights used, interpretation without causal claims.
-- [ ] Section 6 of the report delivered to Gustavo by D3 18:00.
+- [ ] `notebooks/33_crime_patterns_bivariate.ipynb`: Executed with cell outputs. Temporal charts and Bivariate Moran scatterplot saved to `outputs/figures/`.
+- [ ] Bivariate Moran: $I$, pseudo p-value, permutations (999), weights documented; explicit disclaimer that association $\neq$ causality.
+- [ ] Report section 1 written to `report/sections/1_problem_data_sources.md`.
+- [ ] Section 6 of the report merged ✅.
 
-**Suggested commits:** `analysis(crime): source search log and instructor decision` · `analysis(crime): profiling and point-in-polygon test` · `feat(crime): crime type mapping` · `feat(crime): crime transform` · `docs(crime): data dictionary` · `analysis(crime): incidents by type and time` · `analysis(spatial): bivariate Moran` · `docs(report): limitations section`.
+**Suggested commits:** `analysis(crime): temporal crime patterns and bivariate moran` · `docs(report): problem and data sources section`.
 
-**README/report:** README §2 public-safety row, §4 crime decisions, §10 cautions; report section 6.
+**README/report:** README §2 public-safety row, §4 crime decisions, §10 cautions; report sections 1 and 6.
 
 ---
 
@@ -497,12 +418,12 @@ Each member writes their section as `report/sections/<n>_<topic>.md` (own commit
 
 | Section | Owner | Content |
 |---|---|---|
-| 1. Problem and data sources | Julio | Why, which sources, temporal coverage of each |
+| 1. Problem and data sources | Valeria *(reassigned from Julio)* | Why, which sources, temporal coverage of each |
 | 2. Geographic integration strategy | Lorena | Unit choice, CRS, point-in-polygon results (kept/dropped %) |
-| 3. Data Warehouse architecture | Jose | Diagram, grains, pipeline in one figure |
-| 4. Key KPIs and spatial analysis | Nora | KPI table, Moran/LISA results |
+| 3. Data Warehouse architecture | Jose | Diagram, grains, pipeline in one figure (drafted; verified crime count and final figure references pending) |
+| 4. Key KPIs and spatial analysis | Jose *(finalizing Nora's draft)* | KPI table, Moran/LISA results |
 | 5. Main findings (with maps) | Gustavo (each member sends 1–2 findings from their analysis) | Maps/figures + interpretation |
-| 6. Limitations and cautions | Valeria | Temporal mismatch, suppression, MAUP, data origin, association ≠ causation |
+| 6. Limitations and cautions | Valeria | Temporal mismatch, suppression, MAUP, data origin, association ≠ causation (completed ✅) |
 
 ## 6. Final checklist (Jose, before tagging v1.0)
 
