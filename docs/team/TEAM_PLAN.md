@@ -186,14 +186,14 @@ Tasks:
 ```
 
 **Win conditions**
-- [ ] A teammate can go from `git clone` to a populated DW with only the README commands.
-- [ ] `python -m src.pipeline all` ends with the validation NOTICE and no exception.
-- [ ] `SELECT count(*) FROM dw.v_kpi_ageb` = 2,431; `SELECT sum(pop_total) FROM dw.v_kpi_ageb` = 9,138,524.
-- [ ] `notebooks/32_global_moran_lisa.ipynb` committed with outputs and maps saved to `outputs/maps/`.
-- [ ] Global Moran for at least 2 indicators: 999 permutations, seed 42, I, E[I], permutation z-score, pseudo p-value and n; Queen vs KNN-6 comparison on identical indicator-specific samples; scatterplots saved and non-causal interpretation written.
-- [ ] LISA for at least 2 indicators: shared `local_clusters`, 999 permutations, seed 42, HH / LL / HL / LH / not-significant maps saved, and significant-AGEB list exported with indicator, cluster and pseudo p-value.
-- [ ] Report sections 3 and 4 completed; section 3 has a verified crime fact count and resolved figure references, with no `_TBD_` or `Figure X` / `Figure Y` placeholders.
-- [ ] Tag `v1.0` created on a clean working tree.
+- [ ] A teammate can go from `git clone` to a populated DW with only the README commands. (pending: Windows setup adaptations, a Docker name conflict and FGJ TLS prevent README-only reproduction of v1.0.)
+- [x] `python -m src.pipeline all` ends with the validation NOTICE and no exception.
+- [x] `SELECT count(*) FROM dw.v_kpi_ageb` = 2,431; `SELECT sum(pop_total) FROM dw.v_kpi_ageb` = 9,138,524.
+- [x] `notebooks/32_global_moran_lisa.ipynb` committed with outputs and maps saved to `outputs/maps/`.
+- [x] Global Moran for at least 2 indicators: 999 permutations, seed 42, I, E[I], permutation z-score, pseudo p-value and n; Queen vs KNN-6 comparison on identical indicator-specific samples; scatterplots saved and non-causal interpretation written.
+- [x] LISA for at least 2 indicators: shared `local_clusters`, 999 permutations, seed 42, HH / LL / HL / LH / not-significant maps saved, and significant-AGEB list exported with indicator, cluster and pseudo p-value.
+- [x] Report sections 3 and 4 completed; section 3 has a verified crime fact count and resolved figure references, with no `_TBD_` or `Figure X` / `Figure Y` placeholders.
+- [ ] Tag `v1.0` created on a clean working tree. (pending: tag v1.0 exists at 5e307ea; working-tree cleanliness at creation is not evidenced.)
 
 **Suggested commits:** `analysis(spatial): execute global moran and lisa notebook` · `docs(report): finalize spatial kpis report section` · `docs(readme): spatial findings and release instructions` · `chore(repo): release tag v1.0`.
 
@@ -263,10 +263,10 @@ Tasks, one commit each on branch lorena/<task>:
 ```
 
 **Win conditions**
-- [ ] `docs/data_dictionary.md`: `dim_geography` section fully filled (no `_TODO_`).
-- [ ] `notebooks/30_kpi_maps.ipynb`: Executed with cell outputs. ≥ 6 KPI maps with legend, title, units and scale/basemap.
-- [ ] `notebooks/31_correlation.ipynb`: Executed with cell outputs. ≥ 3 relationships, Spearman justified, sensitivity evaluated, figures saved.
-- [ ] Report section 2 delivered to `report/sections/2_geographic_integration.md`.
+- [x] `docs/data_dictionary.md`: `dim_geography` section fully filled (no `_TODO_`).
+- [x] `notebooks/30_kpi_maps.ipynb`: Executed with cell outputs. ≥ 6 KPI maps with legend, title, units and scale/basemap.
+- [x] `notebooks/31_correlation.ipynb`: Executed with cell outputs. ≥ 3 relationships, Spearman justified, sensitivity evaluated, figures saved.
+- [x] Report section 2 delivered to `report/sections/2_geographic_integration.md`.
 
 **Suggested commits:** `docs(geo): document dim_geography in data dictionary` · `analysis(maps): kpi choropleth mapping` · `analysis(spatial): demographic and economic correlations` · `docs(report): geographic integration section`.
 
@@ -326,10 +326,10 @@ Tasks, one commit each on branch valeria/<task>:
 ```
 
 **Win conditions**
-- [ ] `notebooks/33_crime_patterns_bivariate.ipynb`: Executed with cell outputs. Temporal charts and Bivariate Moran scatterplot saved to `outputs/figures/`.
-- [ ] Bivariate Moran: $I$, pseudo p-value, permutations (999), weights documented; explicit disclaimer that association $\neq$ causality.
-- [ ] Report section 1 written to `report/sections/1_problem_data_sources.md`.
-- [ ] Section 6 of the report merged ✅.
+- [x] `notebooks/33_crime_patterns_bivariate.ipynb`: Executed with cell outputs. Temporal charts and Bivariate Moran scatterplot saved to `outputs/figures/`.
+- [x] Bivariate Moran: $I$, pseudo p-value, permutations (999), weights documented; explicit disclaimer that association $\neq$ causality.
+- [x] Report section 1 written to `report/sections/1_problem_data_sources.md`.
+- [x] Section 6 of the report merged ✅.
 
 **Suggested commits:** `analysis(crime): temporal crime patterns and bivariate moran` · `docs(report): problem and data sources section`.
 
@@ -399,12 +399,12 @@ alcaldía boundaries to outputs/maps/; interpretation without causal language. n
 ```
 
 **Win conditions**
-- [ ] `docs/data_sources.md` lists all 4 sources with licence and SHA-256; data-quality register has ≥ 8 issues with counts.
-- [ ] `pytest tests/` passes (or skips) on a clean checkout and passes after `python -m src.pipeline transform`.
-- [ ] `sql/05_kpi_queries.sql` runs without errors on the populated DW and covers all 14 KPIs of README §6.
-- [ ] Hot-spot notebook: clusters per alcaldía, business × crime overlap table, Queen vs KNN stability, one map saved; reuses Nora's functions.
-- [ ] Alcaldía comparison: 16 rows, ratios computed from sums, one figure saved.
-- [ ] `report/technical_report.pdf` 4–6 pages, ≥ 3 maps/figures, all six required sections.
+- [x] `docs/data_sources.md` lists all 4 sources with licence and SHA-256; data-quality register has ≥ 8 issues with counts.
+- [x] `pytest tests/` passes (or skips) on a clean checkout and passes after `python -m src.pipeline transform`.
+- [x] `sql/05_kpi_queries.sql` runs without errors on the populated DW and covers all 14 KPIs of README §6.
+- [x] Hot-spot notebook: clusters per alcaldía, business × crime overlap table, Queen vs KNN stability, one map saved; reuses Nora's functions.
+- [x] Alcaldía comparison: 16 rows, ratios computed from sums, one figure saved.
+- [x] `report/technical_report.pdf` 4–6 pages, ≥ 3 maps/figures, all six required sections.
 
 **Suggested commits:** `docs(repo): source inventory` · `docs(repo): data-quality register` · `analysis(geo): cross-source integration check` · `test(dw): processed-file contract tests` · `sql(kpi): KPI demonstration queries` · `sql(kpi): KPIs by alcaldía` · `analysis(spatial): LISA hot spots by alcaldía` · `analysis(spatial): business and crime hot-spot overlap` · `analysis(kpi): alcaldía comparison` · `docs(report): findings section` · `docs(report): technical report PDF`.
 
@@ -427,10 +427,10 @@ Each member writes their section as `report/sections/<n>_<topic>.md` (own commit
 
 ## 6. Final checklist (Jose, before tagging v1.0)
 
-- [ ] Fresh clone → README commands → full DW + validation passes.
-- [ ] Every KPI in the brief has a column in `dw.v_kpi_ageb` or a view (Incidents by type and time → `v_crime_by_type_time`).
-- [ ] Correlation (≥ 3), Global Moran (≥ 2), LISA, bivariate Moran (≥ 1), neighbourhood rule explained.
-- [ ] Data dictionary complete, diagram present, maps/figures in `outputs/`.
-- [ ] README: all `_TODO_` replaced; assumptions and cautions written.
-- [ ] `git shortlog -sne main` shows all 6 members with linked accounts across D1–D3.
-- [ ] Report PDF in `report/` and submitted.
+- [ ] Fresh clone → README commands → full DW + validation passes. (pending: Windows setup adaptations, a Docker name conflict and FGJ TLS prevent README-only reproduction of v1.0.)
+- [x] Every KPI in the brief has a column in `dw.v_kpi_ageb` or a view (Incidents by type and time → `v_crime_by_type_time`).
+- [x] Correlation (≥ 3), Global Moran (≥ 2), LISA, bivariate Moran (≥ 1), neighbourhood rule explained.
+- [x] Data dictionary complete, diagram present, maps/figures in `outputs/`.
+- [x] README: all `_TODO_` replaced; assumptions and cautions written.
+- [x] `git shortlog -sne main` shows all 6 members with linked accounts across D1–D3.
+- [x] Report PDF in `report/` and submitted.
