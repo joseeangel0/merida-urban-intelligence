@@ -8,7 +8,7 @@ A reproducible geospatial Data Warehouse (PostgreSQL/PostGIS) that integrates de
 
 > **Scope change (5 Oct 2026).** The project started with Mérida, Yucatán. The only public crime data for Mérida (SESNSP) is aggregated by municipality, and the instructor required real georeferenced incidents (no simulated data); with municipal crime data the spatial analysis would have to move to the state level. Following the instructor's suggestion we moved the study area to Mexico City, where the Attorney General's Office (FGJ) publishes geolocated investigation files. The Mérida assessment is kept as Phase 1 evidence (see §3 and §10). The repository name is unchanged.
 
-> 🚧 Sections marked _TODO (owner)_ are filled in as each phase is completed. Team workflow: [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/team/TEAM_PLAN.md`](docs/team/TEAM_PLAN.md).
+Team workflow: [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/team/TEAM_PLAN.md`](docs/team/TEAM_PLAN.md).
 
 ---
 
@@ -33,7 +33,37 @@ Exact URLs, file hashes and download dates: [`data/raw/manifest.json`](data/raw/
 
 ## 3. Geographic strategy
 
-_TODO (Lorena): alternatives considered (municipality, locality, AGEB, block, colonia, hex grid), selected unit and justification, CRS, point-to-polygon integration._
+The common unit is the **urban AGEB**, which joins published Census totals to
+INEGI's Marco Geoestadístico 2020 polygons by `CVEGEO` and supports direct
+assignment of DENUE and FGJ points without interpolating population counts.
+
+| Alternative | Assessment |
+|---|---|
+| Alcaldía / municipality | Stable units across all 16 alcaldías, but too coarse for neighbourhood-scale comparisons. |
+| Locality | Official identifiers and Census totals exist, but localities vary in size and conceal within-city differences. |
+| Colonia | Familiar neighbourhood names, but boundaries vary by source and do not directly match Census keys. |
+| Hexagonal grid | Flexible, regular cells, but no Census key; demographic counts would require areal interpolation. |
+| **Urban AGEB (selected)** | Shared official keys, published demographic totals and detailed polygons provide a consistent cross-source unit. |
+
+The matched frame has **2,431 urban AGEBs in 33 municipality/locality pairs**,
+including **2,348 city-core AGEBs** (`cve_loc = '0001'`) and 83 in other urban
+localities. The raw Census has 2,433 AGEB totals in 35 pairs; two Census-only
+AGEBs (`0901101101107`, `0901201351227`), containing **7,108 residents**, have no
+matching polygon and are excluded and counted. Rural CDMX is outside this
+urban study frame; the earlier Mérida assessment remains Phase 1 evidence.
+
+Polygons and stored point geometries use **EPSG:6372** (Mexico ITRF2008 /
+Lambert Conformal Conic, metres); DENUE and FGJ longitude/latitude coordinates
+enter in **EPSG:4326** and are projected before assignment. The shared
+[`spatial.py`](src/transform/spatial.py) assigns points with strict `within`:
+points outside urban AGEBs or exactly on their boundaries are discarded and
+counted, without nearest-area allocation. After coordinate checks and spatial
+assignment, DENUE retains **461,231 / 462,732 establishments (99.7%)** and FGJ
+retains **112,285 / 119,666 eligible 2024 offences (93.8%)**. The FGJ denominator
+already excludes other offence years and non-criminal events (see §4).
+
+Details: [geographic integration report](report/sections/2_geographic_integration.md)
+and [`dim_geography` dictionary](docs/data_dictionary.md#dim_geography--owner-lorena).
 
 ## 4. ETL pipeline
 
@@ -41,7 +71,22 @@ _TODO (Lorena): alternatives considered (municipality, locality, AGEB, block, co
 
 Source: [`docs/pipeline.mmd`](docs/pipeline.mmd). Every step is run by `python -m src.pipeline` (see §8).
 
-_TODO (each owner): principal cleaning, transformation and spatial-integration decisions per source, including every transformation that changes grain, meaning or geographic representation._
+The flow is **RAW → CLEAN → SPATIAL JOIN → PostGIS**. Raw downloads remain
+unchanged in `data/raw/`, with source metadata and SHA-256 digests recorded in
+[`manifest.json`](data/raw/manifest.json). One module per source in
+[`src/transform/`](src/transform/) writes the contracted Parquet outputs;
+[`spatial.py`](src/transform/spatial.py) shares coordinate checks, projection
+and point-to-AGEB assignment. The Census keeps only AGEB-total rows to avoid
+double-counting blocks and higher-level totals, and converts `*` and `N/D` to
+**NULL, never 0**. DENUE establishments become points assigned to urban AGEBs.
+FGJ keeps offences dated in **2024** (`fecha_hecho`) and excludes
+`HECHO NO DELICTIVO` before spatial assignment. Point geometries are projected
+from EPSG:4326 to EPSG:6372; retained business and crime records keep their
+source grain. [`load_staging.py`](src/load/load_staging.py) loads the processed
+files into `stg`; [`02_load.sql`](sql/02_load.sql) resolves keys and loads `dw`,
+whose keys, geometry and totals are checked by
+[`04_validation.sql`](sql/04_validation.sql). The source-specific decisions
+and exclusion counts follow below.
 
 ### Census demographic layer
 
@@ -278,7 +323,37 @@ merida-urban-intelligence/
 
 ## 10. Assumptions, data-quality issues and cautions
 
-_TODO (all): temporal mismatch between sources (Census 2020, DENUE 2026, crime 2024), INEGI confidentiality suppression, points outside urban AGEBs, small-population AGEBs, MAUP, spatial association ≠ causation._
+- **Different observation dates:** Census 2020, DENUE **05/2026** and FGJ
+  **January–July 2024** are not simultaneous observations. A later business
+  location does not establish economic exposure at the time of an offence.
+  The FGJ filing cutoff leaves July right-censored by reporting lag;
+  **August–December are unavailable, not months with zero crime**. Counts and
+  rates are not annualised, and seven months do not establish annual seasonality.
+- **Suppression and missing denominators:** INEGI `*` and `N/D` are stored as
+  **NULL, never 0**; totals and ratios must disclose missing-data coverage.
+  Ratios with zero denominators are NULL. Area summaries sum valid paired
+  numerators and denominators before division rather than averaging AGEB rates.
+- **Urban geographic selection:** **1,501 DENUE establishments** are excluded
+  from the 462,732-record snapshot: three outside CDMX and 1,498 outside the
+  urban AGEB polygons. FGJ falls from **119,666 eligible files to 112,285**:
+  7,182 fail coordinate checks and 199 valid points fail strict `within`
+  assignment. These exclusions can vary by area and source; the retained
+  sample describes urban CDMX, not all state territory.
+- **Small resident populations:** **55 AGEBs have fewer than 100 residents**,
+  including **17 with zero residents**; **51 of the 55 are in the city core**.
+  Tiny denominators make per-resident rates unstable. `load_kpis()` excludes
+  low-population AGEBs by default; NB30 draws them in grey for per-resident
+  rates while retaining all 2,348 city-core polygons for mapping.
+- **Association and spatial scale:** AGEB boundaries and aggregation scale
+  affect spatial patterns (MAUP); area-level relationships do not establish
+  individual behaviour (ecological fallacy) or causality. Crime and business
+  rates per 1,000 residents share a population denominator that can inflate
+  correlation. Ordinary correlation p-values ignore spatial dependence, and
+  LISA labels are exploratory unless the stated testing procedure accounts for
+  multiple comparisons.
+
+Evidence and decisions: [data-quality register](docs/data_sources.md#3-data-quality-register)
+and [report limitations](report/sections/6_limitations.md).
 
 ### Public-safety interpretation cautions
 
