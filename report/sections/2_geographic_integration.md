@@ -60,8 +60,11 @@ enforces one output assignment per retained point.
 | DENUE 05/2026 | 462,732 Mexico City establishment records | 461,231 | **99.7%** |
 | FGJ investigation files, offences dated 2024 | 119,666 eligible 2024 criminal records | 112,285 | **93.8%** |
 
-For DENUE, three records have coordinates outside Mexico City; **461,231**
-establishments are assigned to urban AGEBs from the 462,732-record snapshot.
+For DENUE, **461,231** of the 462,732 establishments in the snapshot are
+assigned to urban AGEBs. The remaining 1,501 records (0.32%) are not inside
+any of the 2,431 urban AGEB polygons: three have coordinates outside Mexico
+City, and the rest lie in rural CDMX, on roads or near the state border,
+outside the urban AGEB frame.
 The assigned AGEB agrees with DENUE's reported code for 99.84% of
 establishments, with remaining differences kept auditable through
 `cvegeo_reported`. For FGJ, the starting total is the offence-year and
