@@ -215,9 +215,9 @@ Spatial weight matrices are row-standardised: primary analyses use **Queen conti
 Key spatial findings from `notebooks/32_global_moran_lisa.ipynb` (999 permutations, seed 42, $\alpha = 0.05$):
 - **Global Spatial Autocorrelation:** All indicators display statistically significant positive spatial autocorrelation ($p = 0.001$, $E[I] = -0.0004$), indicating structured geographic clustering rather than random dispersion. Economically active population rate ($I = 0.506$), business density ($I = 0.462$), and population density ($I = 0.434$) show strong positive clustering, while crime rate exhibits moderate positive clustering ($I = 0.210$). Results remain consistent under KNN-6 sensitivity testing ($I = 0.500, 0.458, 0.451, 0.179$, respectively).
 - **Local Moran (LISA) Clusters:**
-  - *Business density:* High-High commercial clusters concentrate in central alcaldías (Cuauhtémoc, Benito Juárez, Miguel Hidalgo; 109 AGEBs), contrasted with 312 Low-Low AGEBs in peripheral residential sectors.
+  - *Business density:* There are 109 High-High AGEBs citywide, including 87 in Cuauhtémoc (76), Benito Juárez (4) and Miguel Hidalgo (7), contrasted with 312 Low-Low AGEBs across the city-core sample. Regional counts are derived from `outputs/maps/32_significant_agebs.csv`.
   - *Crime rate:* 110 High-High clusters center around core commercial and transit corridors, while 344 Low-Low clusters form across peripheral and residential areas.
-- **Methodological caution:** Spatial association describes geographic clustering patterns and does not establish causal mechanisms between neighbouring units.
+- **Methodological caution:** Spatial association describes geographic clustering patterns and does not establish causal mechanisms between neighbouring units. Local pseudo p-values are nominal and unadjusted for multiple comparisons (2,348 business and 2,297 crime tests); the LISA maps and counts are exploratory, not multiplicity-adjusted hotspot findings.
 
 
 ## 8. Reproducing the project

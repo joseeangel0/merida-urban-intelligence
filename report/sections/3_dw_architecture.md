@@ -4,11 +4,19 @@
 
 ## 3.1 Pipeline
 
-The solution follows a RAW → CLEAN → SPATIAL JOIN → PostgreSQL/PostGIS pipeline (Figure X, `docs/pipeline.png`). The four original sources are downloaded by a script and stored unchanged, together with a SHA-256 manifest that fixes the exact version used. One Python module per source cleans the data and writes a file with a fixed column contract; a shared spatial module converts every latitude/longitude pair into a point in EPSG:6372 and assigns it to the urban AGEB that contains it. The cleaned files are written to a staging schema (`stg`) and moved into the dimensional schema (`dw`) by SQL, where the surrogate keys are resolved. The whole sequence is executed by a single command, and the last step is a validation script that aborts the run if any check fails, so a warehouse that is built is also a warehouse that has been verified.
+The solution follows a RAW → CLEAN → SPATIAL JOIN → PostgreSQL/PostGIS pipeline (Figure 3.1). The four original sources are downloaded by a script and stored unchanged, together with a SHA-256 manifest that fixes the exact version used. One Python module per source cleans the data and writes a file with a fixed column contract; a shared spatial module converts every latitude/longitude pair into a point in EPSG:6372 and assigns it to the urban AGEB that contains it. The cleaned files are written to a staging schema (`stg`) and moved into the dimensional schema (`dw`) by SQL, where the surrogate keys are resolved. The whole sequence is executed by a single command, and the last step is a validation script that aborts the run if any check fails, so a warehouse that is built is also a warehouse that has been verified.
+
+![Figure 3.1. Source-to-warehouse ETL pipeline](../../docs/pipeline.png)
+
+*Figure 3.1. Source-to-warehouse ETL pipeline. Source: project pipeline diagram.*
 
 ## 3.2 Dimensional model
 
-The warehouse is a star schema with three fact tables that share conformed dimensions (Figure Y, `docs/warehouse_model.png`):
+The warehouse is a star schema with three fact tables that share conformed dimensions (Figure 3.2):
+
+![Figure 3.2. Warehouse dimensional model](../../docs/warehouse_model.png)
+
+*Figure 3.2. Warehouse dimensional model. Source: project schema diagram.*
 
 | Fact table | Grain | Main dimensions |
 |---|---|---|

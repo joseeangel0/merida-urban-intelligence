@@ -43,6 +43,12 @@ Results demonstrate strong stability between Queen contiguity and KNN-6 ($k=6$),
 
 Local Moran analysis ($\alpha = 0.05$, Queen weights, 999 permutations, seed = 42) identifies significant spatial clusters and spatial outliers:
 
+These are exploratory classifications based on nominal per-AGEB pseudo
+p-values. No multiple-comparison adjustment is applied to the 2,348 business
+and 2,297 crime tests, so the threshold does not control false discoveries
+across the family of local tests. The counts below are not counts of
+multiplicity-adjusted hotspots.
+
 | Indicator | Total AGEBs | Significant ($p < 0.05$) | High-High (Hot spot) | Low-Low (Cold spot) | High-Low (Outlier) | Low-High (Outlier) | Not significant |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | Business density | 2,348 | 482 (20.5%) | 109 | 312 | 33 | 28 | 1,866 |
