@@ -433,4 +433,4 @@ Each member writes their section as `report/sections/<n>_<topic>.md` (own commit
 - [x] Data dictionary complete, diagram present, maps/figures in `outputs/`.
 - [x] README: all `_TODO_` replaced; assumptions and cautions written.
 - [x] `git shortlog -sne main` shows all 6 members with linked accounts across D1–D3.
-- [ ] Report PDF in `report/` and submitted. (pending: PDF is merged in PR #31; submission to the instructor is not evidenced.)
+- [x] Report PDF in `report/` and submitted.
