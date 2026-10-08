@@ -1,5 +1,5 @@
 Source Layer,Publisher,Original Grain,Raw Records,Filtered / Eligible,Retained in Urban AGEBs,Retention % (Raw),Retention % (Eligible),Retained Measure,Integration Status
 Marco Geoestadístico 2020 (09a.shp),INEGI,One polygon per geostatistical unit,2431,2431,2431,100.0,100.0,"2,431 polygons (792.15 km²)","Complete reference boundary frame (2,348 city core + 83 outlying)"
-Censo de Población y Vivienda 2020,INEGI,"Tabular records (blocks, AGEBs, localities, municipalities)",2433,2433,2431,99.92,99.92,"9,138,524 residents","Excludes 2 orphan AGEBs (7,108 residents) lacking polygons"
+Censo de Población y Vivienda 2020,INEGI,"Tabular records (blocks, AGEBs, localities, municipalities)",68941,2433,2431,3.53,99.92,"9,138,524 residents","Filtered 68,941 mixed-grain rows to 2,433 AGEBs; excludes 2 orphan AGEBs (7,108 residents) lacking polygons"
 DENUE 05/2026,INEGI,One economic establishment point (lat/lon),462732,462729,461231,99.68,99.68,"461,231 establishments","99.84% reported-AGEB agreement; drops 3 invalid coords + 1,498 outside AGEBs"
 Carpetas de Investigación 2024,FGJ CDMX,"One investigation file (carpeta) with date, category, lat/lon",138630,119666,112285,81.0,93.83,"112,285 investigation files",7-month filing extract (Jan-Jul); retains 93.83% of eligible 2024 crimes
