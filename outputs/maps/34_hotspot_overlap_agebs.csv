@@ -1,0 +1,36 @@
+cvegeo,mun_name,pop_total,businesses_total,crime_total,business_density_km2,crime_rate_per_1k,dominant_sector,biz_cluster,biz_p_sim,crime_cluster,crime_p_sim,biz_cluster_knn,crime_cluster_knn
+0901500010610,Cuauhtémoc,10667,342,201,1032.9,18.84,Retail trade,HH,0.036,HH,0.004,HH,HH
+090150001063A,Cuauhtémoc,4292,227,179,858.5,41.71,Retail trade,HH,0.002,HH,0.001,HH,HH
+0901500010663,Cuauhtémoc,1838,2562,73,13856.1,39.72,Retail trade,HH,0.001,HH,0.032,HH,ns
+0901500010748,Cuauhtémoc,4753,1864,479,5961.0,100.78,Retail trade,HH,0.001,HH,0.001,HH,HH
+0901500010752,Cuauhtémoc,1708,1606,144,6035.3,84.31,Retail trade,HH,0.001,HH,0.001,HH,HH
+0901500010767,Cuauhtémoc,260,1467,281,8264.8,1080.77,Retail trade,HH,0.001,HH,0.001,HH,HH
+0901500010771,Cuauhtémoc,947,2783,293,8029.4,309.4,Retail trade,HH,0.001,HH,0.001,HH,HH
+0901500010786,Cuauhtémoc,2006,1056,46,6518.5,22.93,Retail trade,HH,0.001,HH,0.026,HH,HH
+0901500010790,Cuauhtémoc,2984,345,99,1148.9,33.18,Accommodation and food services,HH,0.015,HH,0.023,HH,HH
+0901500010803,Cuauhtémoc,974,427,255,1463.8,261.81,Retail trade,HH,0.008,HH,0.001,HH,HH
+0901500010818,Cuauhtémoc,172,2318,247,8707.7,1436.05,Retail trade,HH,0.001,HH,0.001,HH,HH
+0901500010822,Cuauhtémoc,4209,381,114,1312.0,27.08,Accommodation and food services,HH,0.035,HH,0.023,HH,HH
+0901500010837,Cuauhtémoc,732,290,60,2290.7,81.97,"Professional, scientific and technical services",HH,0.049,HH,0.006,HH,HH
+0901500010841,Cuauhtémoc,1803,389,108,1639.3,59.9,Retail trade,HH,0.022,HH,0.007,HH,HH
+0901500010856,Cuauhtémoc,2963,641,92,2010.0,31.05,Retail trade,HH,0.044,HH,0.002,HH,HH
+0901500010860,Cuauhtémoc,1788,704,159,1981.4,88.93,Retail trade,HH,0.005,HH,0.004,HH,HH
+0901500010875,Cuauhtémoc,7970,2002,308,4825.3,38.64,Retail trade,HH,0.001,HH,0.001,HH,HH
+090150001088A,Cuauhtémoc,2011,1582,101,8348.3,50.22,Retail trade,HH,0.001,HH,0.001,HH,HH
+0901500010894,Cuauhtémoc,2048,611,72,3700.8,35.16,Retail trade,HH,0.001,HH,0.001,HH,HH
+0901500010907,Cuauhtémoc,2642,1617,119,7534.9,45.04,Retail trade,HH,0.001,HH,0.001,HH,HH
+0901500010926,Cuauhtémoc,3007,300,108,1360.5,35.92,Accommodation and food services,HH,0.04,HH,0.023,HH,HH
+0901500010930,Cuauhtémoc,626,504,157,1889.1,250.8,Accommodation and food services,HH,0.041,HH,0.008,HH,HH
+0901500010945,Cuauhtémoc,1082,415,252,1553.1,232.9,Accommodation and food services,HH,0.017,HH,0.001,HH,HH
+090150001095A,Cuauhtémoc,738,805,309,3412.5,418.7,Retail trade,HH,0.028,HH,0.01,HH,HH
+0901500010979,Cuauhtémoc,2385,821,107,3725.0,44.86,Retail trade,HH,0.001,HH,0.031,HH,HH
+0901500010983,Cuauhtémoc,982,263,51,2009.2,51.93,Accommodation and food services,HH,0.027,HH,0.003,HH,HH
+0901500010998,Cuauhtémoc,2370,520,133,1857.1,56.12,Accommodation and food services,HH,0.017,HH,0.008,HH,HH
+0901500011002,Cuauhtémoc,2701,511,176,1586.0,65.16,Accommodation and food services,HH,0.009,HH,0.012,HH,HH
+0901500011017,Cuauhtémoc,4538,669,175,1712.3,38.56,Retail trade,HH,0.019,HH,0.045,HH,ns
+0901500011106,Cuauhtémoc,1552,297,50,1771.0,32.22,Retail trade,HH,0.035,HH,0.028,HH,HH
+090150001120A,Cuauhtémoc,1876,309,111,1650.6,59.17,Accommodation and food services,HH,0.009,HH,0.039,HH,HH
+0901600010711,Miguel Hidalgo,2471,308,99,1080.3,40.06,"Professional, scientific and technical services",HH,0.043,HH,0.032,HH,HH
+0901600010779,Miguel Hidalgo,1328,270,86,985.8,64.76,Retail trade,HH,0.032,HH,0.023,HH,ns
+0901700010579,Venustiano Carranza,2007,602,80,4394.2,39.86,Retail trade,HH,0.001,HH,0.019,HH,HH
+0901700010899,Venustiano Carranza,3055,764,84,3410.7,27.5,Retail trade,HH,0.001,HH,0.025,HH,HH
