@@ -1,12 +1,18 @@
 {
   "analysis": "Valeria / notebook 33 / crime patterns and bivariate Moran",
-  "executed_at_utc": "2026-10-08T07:03:45.426174+00:00",
+  "executed_at_utc": "2026-10-08T11:30:04.574673+00:00",
   "crime_year": 2024,
   "filing_window": [
     "2024-01-01",
     "2024-07-31"
   ],
   "crime_source_sha256": "2ac3f17189a61ab7b2eb95fb21470e46adaba6f92526c7b92d23190ed2431f84",
+  "crime_source_sha256_checked_against": "dw.dim_source",
+  "right_censored_month": 7,
+  "weekday_sensitivity_window": [
+    "2024-01-01",
+    "2024-06-30"
+  ],
   "annualised": false,
   "warehouse_views": [
     "dw.v_kpi_ageb",
@@ -38,12 +44,13 @@
   "seed": 42,
   "alpha": 0.05,
   "p_value": "esda.Moran_BV.p_sim (smaller permutation tail)",
+  "quadrants": "sign of standardised x vs spatial lag of standardised y; descriptive, not tested",
   "software": {
     "pandas": "3.0.6",
     "numpy": "2.5.3",
     "geopandas": "1.2.0",
     "esda": "2.10.0",
     "libpysal": "4.15.0",
-    "python": "3.13.1"
+    "python": "3.12.10"
   }
 }
