@@ -33,7 +33,37 @@ Exact URLs, file hashes and download dates: [`data/raw/manifest.json`](data/raw/
 
 ## 3. Geographic strategy
 
-_TODO (Lorena): alternatives considered (municipality, locality, AGEB, block, colonia, hex grid), selected unit and justification, CRS, point-to-polygon integration._
+The common unit is the **urban AGEB**, which joins published Census totals to
+INEGI's Marco Geoestadístico 2020 polygons by `CVEGEO` and supports direct
+assignment of DENUE and FGJ points without interpolating population counts.
+
+| Alternative | Assessment |
+|---|---|
+| Alcaldía / municipality | Stable units across all 16 alcaldías, but too coarse for neighbourhood-scale comparisons. |
+| Locality | Official identifiers and Census totals exist, but localities vary in size and conceal within-city differences. |
+| Colonia | Familiar neighbourhood names, but boundaries vary by source and do not directly match Census keys. |
+| Hexagonal grid | Flexible, regular cells, but no Census key; demographic counts would require areal interpolation. |
+| **Urban AGEB (selected)** | Shared official keys, published demographic totals and detailed polygons provide a consistent cross-source unit. |
+
+The matched frame has **2,431 urban AGEBs in 33 municipality/locality pairs**,
+including **2,348 city-core AGEBs** (`cve_loc = '0001'`) and 83 in other urban
+localities. The raw Census has 2,433 AGEB totals in 35 pairs; two Census-only
+AGEBs (`0901101101107`, `0901201351227`), containing **7,108 residents**, have no
+matching polygon and are excluded and counted. Rural CDMX is outside this
+urban study frame; the earlier Mérida assessment remains Phase 1 evidence.
+
+Polygons and stored point geometries use **EPSG:6372** (Mexico ITRF2008 /
+Lambert Conformal Conic, metres); DENUE and FGJ longitude/latitude coordinates
+enter in **EPSG:4326** and are projected before assignment. The shared
+[`spatial.py`](src/transform/spatial.py) assigns points with strict `within`:
+points outside urban AGEBs or exactly on their boundaries are discarded and
+counted, without nearest-area allocation. After coordinate checks and spatial
+assignment, DENUE retains **461,231 / 462,732 establishments (99.7%)** and FGJ
+retains **112,285 / 119,666 eligible 2024 offences (93.8%)**. The FGJ denominator
+already excludes other offence years and non-criminal events (see §4).
+
+Details: [geographic integration report](report/sections/2_geographic_integration.md)
+and [`dim_geography` dictionary](docs/data_dictionary.md#dim_geography--owner-lorena).
 
 ## 4. ETL pipeline
 
