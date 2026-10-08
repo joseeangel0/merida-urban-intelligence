@@ -8,11 +8,11 @@
 
 ## 1. Source Inventory
 
-The Data Warehouse integrates four official datasets published by Mexican government agencies (INEGI and FGJ CDMX). Raw files are downloaded into `data/raw/` via `python -m src.pipeline download` and validated against cryptographically pinned SHA-256 digests recorded in `data/raw/manifest.json`.
+The Data Warehouse integrates four official datasets published by Mexican government agencies (INEGI and FGJ CDMX). Raw files are downloaded into `data/raw/` via `python -m src.pipeline download`, which records computed SHA-256 digests and metadata into `data/raw/manifest.json`. The download script logs a warning if an existing manifest hash differs but does not abort or enforce a hard validation gate; reproducibility requires explicitly verifying input file checksums against the expected digests in the table below before executing commands that rewrite the manifest. If a checksum diverges, ETL execution must halt to re-profile or obtain an approved dataset, and extracted directory contents must correspond to the verified archive.
 
 | Dataset Key | Name & Publisher | URL | Licence | Version / Date | Original Grain | CRS | Temporal Coverage | Key Variables | SHA-256 Digest |
 |---|---|---|---|---|---|---|---|---|---|
-| `census_ageb_2020_09` | **Censo de Población y Vivienda 2020** (INEGI) | [inegi.org.mx](https://www.inegi.org.mx/contenidos/programas/ccpv/2020/datosabiertos/ageb_manzana/ageb_mza_urbana_09_cpv2020_csv.zip) | INEGI Términos de libre uso | CPV 2020 | One row per block/AGEB | Tabular (no geometry) | Reference date 15 March 2020 (enumeration 2–27 March 2020) | `POBTOT`, `PEA`, `P_12YMAS`, `P_0A14`, `P_15A64`, `P_65YMAS`, `VIVTOT` | `1f5f123b8e9a50991d1847271b5a2bf321e813e924e5bcf958cab612311c765a` |
+| `census_ageb_2020_09` | **Censo de Población y Vivienda 2020** (INEGI) | [inegi.org.mx](https://www.inegi.org.mx/contenidos/programas/ccpv/2020/datosabiertos/ageb_manzana/ageb_mza_urbana_09_cpv2020_csv.zip) | INEGI Términos de libre uso | CPV 2020 | One row per block/AGEB | Tabular (no geometry) | Reference date 15 March 2020 (enumeration 2–27 March 2020) | `POBTOT`, `PEA`, `P_12YMAS`, `POB0_14`, `POB15_64`, `POB65_MAS`, `VIVTOT` | `1f5f123b8e9a50991d1847271b5a2bf321e813e924e5bcf958cab612311c765a` |
 | `denue_09` | **Directorio Estadístico Nacional de Unidades Económicas** (INEGI) | [inegi.org.mx](https://www.inegi.org.mx/contenidos/masiva/denue/denue_09_csv.zip) | INEGI Términos de libre uso | DENUE 05/2026 | One row per economic establishment | EPSG:4326 (`latitud`, `longitud`) | Active establishments up to May 2026 snapshot | `id`, `clee`, `nom_estab`, `codigo_act`, `per_ocu`, `fecha_alta`, coordinates | `ae608f30118f6313e9d537ea22918b2c9e9a3d3f19c2ddf5907f55dbb1642b19` |
 | `marco_geo_2020_09` | **Marco Geoestadístico 2020** (INEGI) | [inegi.org.mx](https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/marcogeo/889463807469/09_ciudaddemexico.zip) | INEGI Términos de libre uso | Marco Geoestadístico 2020 | Shapefile polygons (Urban AGEBs: `09a.shp`) | EPSG:6372 (ITRF2008 / LCC) | 2020 census cartographic frame | `CVEGEO`, `CVE_ENT`, `CVE_MUN`, `CVE_LOC`, `CVE_AGEB`, MultiPolygon geometry | `685b912f5458138a70726cff41aff828473e14264c43289d3b21f86a9df00320` |
 | `crime_fgj_2024` | **Carpetas de investigación 2024** (FGJ CDMX / Portal de Datos Abiertos CDMX) | [archivo.datos.cdmx.gob.mx](https://archivo.datos.cdmx.gob.mx/FGJ/carpetas/carpetasFGJ_2024.csv) | CC-BY-4.0 | Pinned 2024 snapshot (opened Jan–Jul 2024) | One row per investigation file (*carpeta*) | EPSG:4326 (`latitud`, `longitud`) | Filing window: 1 Jan – 31 Jul 2024; retained offences in 2024 | `delito`, `categoria_delito`, `fecha_inicio`, `fecha_hecho`, `hora_hecho`, coordinates | `2ac3f17189a61ab7b2eb95fb21470e46adaba6f92526c7b92d23190ed2431f84` |
@@ -53,12 +53,18 @@ This register documents observed empirical data defects across the four source d
 
 ## 4. Verification and Reproducibility
 
-Every dataset can be verified locally using the pipeline inspection commands:
+Raw source archives and pipeline steps can be verified locally:
 ```bash
-# Verify checksums and raw manifest
+# 1. Verify raw input digests against Section 1 pinned digests before downloading or overwriting
+shasum -a 256 data/raw/census_ageb_2020_09.zip \
+               data/raw/denue_09.zip \
+               data/raw/marco_geo_2020_09.zip \
+               data/raw/crime_fgj_2024.csv
+
+# 2. Compute and record raw source metadata into data/raw/manifest.json
 python -m src.pipeline download
 
-# Run data warehouse validation script
+# 3. Run data warehouse validation script across loaded relations and views
 python -m src.pipeline validate
 ```
 Validation confirms that all 2,431 AGEBs, 9,138,524 residents, 461,231 business establishments, and 112,285 criminal investigation files are properly indexed, loaded, and reconciled across dimensions and fact tables.
