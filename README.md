@@ -8,7 +8,7 @@ A reproducible geospatial Data Warehouse (PostgreSQL/PostGIS) that integrates de
 
 > **Scope change (5 Oct 2026).** The project started with Mérida, Yucatán. The only public crime data for Mérida (SESNSP) is aggregated by municipality, and the instructor required real georeferenced incidents (no simulated data); with municipal crime data the spatial analysis would have to move to the state level. Following the instructor's suggestion we moved the study area to Mexico City, where the Attorney General's Office (FGJ) publishes geolocated investigation files. The Mérida assessment is kept as Phase 1 evidence (see §3 and §10). The repository name is unchanged.
 
-> 🚧 Sections marked _TODO (owner)_ are filled in as each phase is completed. Team workflow: [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/team/TEAM_PLAN.md`](docs/team/TEAM_PLAN.md).
+Team workflow: [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/team/TEAM_PLAN.md`](docs/team/TEAM_PLAN.md).
 
 ---
 
@@ -323,7 +323,37 @@ merida-urban-intelligence/
 
 ## 10. Assumptions, data-quality issues and cautions
 
-_TODO (all): temporal mismatch between sources (Census 2020, DENUE 2026, crime 2024), INEGI confidentiality suppression, points outside urban AGEBs, small-population AGEBs, MAUP, spatial association ≠ causation._
+- **Different observation dates:** Census 2020, DENUE **05/2026** and FGJ
+  **January–July 2024** are not simultaneous observations. A later business
+  location does not establish economic exposure at the time of an offence.
+  The FGJ filing cutoff leaves July right-censored by reporting lag;
+  **August–December are unavailable, not months with zero crime**. Counts and
+  rates are not annualised, and seven months do not establish annual seasonality.
+- **Suppression and missing denominators:** INEGI `*` and `N/D` are stored as
+  **NULL, never 0**; totals and ratios must disclose missing-data coverage.
+  Ratios with zero denominators are NULL. Area summaries sum valid paired
+  numerators and denominators before division rather than averaging AGEB rates.
+- **Urban geographic selection:** **1,501 DENUE establishments** are excluded
+  from the 462,732-record snapshot: three outside CDMX and 1,498 outside the
+  urban AGEB polygons. FGJ falls from **119,666 eligible files to 112,285**:
+  7,182 fail coordinate checks and 199 valid points fail strict `within`
+  assignment. These exclusions can vary by area and source; the retained
+  sample describes urban CDMX, not all state territory.
+- **Small resident populations:** **55 AGEBs have fewer than 100 residents**,
+  including **17 with zero residents**; **51 of the 55 are in the city core**.
+  Tiny denominators make per-resident rates unstable. `load_kpis()` excludes
+  low-population AGEBs by default; NB30 draws them in grey for per-resident
+  rates while retaining all 2,348 city-core polygons for mapping.
+- **Association and spatial scale:** AGEB boundaries and aggregation scale
+  affect spatial patterns (MAUP); area-level relationships do not establish
+  individual behaviour (ecological fallacy) or causality. Crime and business
+  rates per 1,000 residents share a population denominator that can inflate
+  correlation. Ordinary correlation p-values ignore spatial dependence, and
+  LISA labels are exploratory unless the stated testing procedure accounts for
+  multiple comparisons.
+
+Evidence and decisions: [data-quality register](docs/data_sources.md#3-data-quality-register)
+and [report limitations](report/sections/6_limitations.md).
 
 ### Public-safety interpretation cautions
 
