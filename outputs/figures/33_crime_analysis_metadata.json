@@ -1,0 +1,49 @@
+{
+  "analysis": "Valeria / notebook 33 / crime patterns and bivariate Moran",
+  "executed_at_utc": "2026-10-08T07:03:45.426174+00:00",
+  "crime_year": 2024,
+  "filing_window": [
+    "2024-01-01",
+    "2024-07-31"
+  ],
+  "crime_source_sha256": "2ac3f17189a61ab7b2eb95fb21470e46adaba6f92526c7b92d23190ed2431f84",
+  "annualised": false,
+  "warehouse_views": [
+    "dw.v_kpi_ageb",
+    "dw.v_crime_by_type_time"
+  ],
+  "source_versions": {
+    "census_ageb_2020_09": "CPV 2020",
+    "denue_09": "DENUE 05/2026",
+    "marco_geo_2020_09": "Marco Geoestad\u00edstico 2020",
+    "crime_fgj_2024": "Carpetas de investigaci\u00f3n 2024"
+  },
+  "temporal_agebs": 2431,
+  "temporal_incidents": 112285,
+  "bivariate_n": 2297,
+  "city_core_only": true,
+  "exclude_low_population": true,
+  "additional_incomplete_pairs": 0,
+  "x": "business_density_km2",
+  "spatial_lag_of": "crime_rate_per_1k",
+  "scales": [
+    "raw",
+    "log1p"
+  ],
+  "weights": [
+    "Queen",
+    "KNN-6"
+  ],
+  "permutations": 999,
+  "seed": 42,
+  "alpha": 0.05,
+  "p_value": "esda.Moran_BV.p_sim (smaller permutation tail)",
+  "software": {
+    "pandas": "3.0.6",
+    "numpy": "2.5.3",
+    "geopandas": "1.2.0",
+    "esda": "2.10.0",
+    "libpysal": "4.15.0",
+    "python": "3.13.1"
+  }
+}
