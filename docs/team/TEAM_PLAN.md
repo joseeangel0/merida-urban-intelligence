@@ -168,19 +168,21 @@ Paste the prompt into your AI *from inside the repository folder*.
 
 **Phase 3 (D3) — Active closeout & integration**
 - `src/analysis/data.py` (`load_kpis`) — published and working with `dw.v_kpi_ageb`.
-- Run and save outputs for `notebooks/32_global_moran_lisa.ipynb` (Nora's notebook, already written; run with `seed=42`, save cluster maps to `outputs/maps/`).
+- Run and save outputs for `notebooks/32_global_moran_lisa.ipynb` (Nora's notebook, already written): Global Moran for at least 2 indicators, with 999 permutations, I, E[I], permutation z-score, pseudo p-value and n; compare Queen against KNN-6 on the same indicator-specific sample and save Moran scatterplots. Fix NumPy's seed to 42 before each Global Moran test.
+- Run LISA for at least 2 indicators using the shared `local_clusters(..., permutations=999, seed=42)`; save HH / LL / HL / LH / not-significant maps to `outputs/maps/` and export the significant-AGEB list with indicator, cluster and pseudo p-value. Explain the neighbourhood rules and avoid causal claims.
 - Finalize `report/sections/4_kpis_spatial_analysis.md` with the Global Moran / LISA table from notebook 32.
-- Report section 3 "Data Warehouse architecture" (`report/sections/3_dw_architecture.md`) — completed.
+- Report section 3 "Data Warehouse architecture" (`report/sections/3_dw_architecture.md`) — drafted; final reconciliation pending. Replace the `fact_crime_incident` `_TBD_` with the verified populated-warehouse count and resolve `Figure X` / `Figure Y` references with Gustavo's report assembly before marking it complete.
 - README integration (§7 spatial analysis findings, §8 reproduction, §9 structure), clean clone test, tag `v1.0`.
 
 **AI prompt (Phase 3 closeout):**
 ```
 You are helping Jose Pech in the repository merida-urban-intelligence. Read README.md and docs/team/TEAM_PLAN.md §4.1.
 Tasks:
-1. Run notebooks/32_global_moran_lisa.ipynb so all cells have execution counts and figures, ensuring cluster maps are written to outputs/maps/.
+1. Run notebooks/32_global_moran_lisa.ipynb so all code cells have execution counts and outputs. Require Global Moran for >= 2 indicators with 999 permutations, I, E[I], z_sim, p_sim and n, Queen vs KNN-6 on the same indicator-specific sample, and saved Moran scatterplots. Seed NumPy to 42 before each Global Moran test. Require LISA for >= 2 indicators through local_clusters(..., permutations=999, seed=42), saved HH/LL/HL/LH/ns maps in outputs/maps/, and an exported significant-AGEB list with indicator, cluster and p_sim. Document weights and interpret association without causal claims.
 2. In report/sections/4_kpis_spatial_analysis.md, finalize the brief summary table of Moran I values and LISA cluster counts.
 3. In README.md §7, replace the _TODO_ with a concise summary of the spatial analysis findings.
-4. Verify clean clone execution: python -m src.pipeline all && pytest tests/.
+4. Finalize report/sections/3_dw_architecture.md: query the populated warehouse for the crime fact count, replace _TBD_, and coordinate final figure numbering with Gustavo to replace Figure X and Figure Y. Do not mark the section complete until these checks pass.
+5. Verify clean clone execution: python -m src.pipeline all && pytest tests/.
 ```
 
 **Win conditions**
@@ -188,7 +190,9 @@ Tasks:
 - [ ] `python -m src.pipeline all` ends with the validation NOTICE and no exception.
 - [ ] `SELECT count(*) FROM dw.v_kpi_ageb` = 2,431; `SELECT sum(pop_total) FROM dw.v_kpi_ageb` = 9,138,524.
 - [ ] `notebooks/32_global_moran_lisa.ipynb` committed with outputs and maps saved to `outputs/maps/`.
-- [ ] Report sections 3 and 4 completed.
+- [ ] Global Moran for at least 2 indicators: 999 permutations, seed 42, I, E[I], permutation z-score, pseudo p-value and n; Queen vs KNN-6 comparison on identical indicator-specific samples; scatterplots saved and non-causal interpretation written.
+- [ ] LISA for at least 2 indicators: shared `local_clusters`, 999 permutations, seed 42, HH / LL / HL / LH / not-significant maps saved, and significant-AGEB list exported with indicator, cluster and pseudo p-value.
+- [ ] Report sections 3 and 4 completed; section 3 has a verified crime fact count and resolved figure references, with no `_TBD_` or `Figure X` / `Figure Y` placeholders.
 - [ ] Tag `v1.0` created on a clean working tree.
 
 **Suggested commits:** `analysis(spatial): execute global moran and lisa notebook` · `docs(report): finalize spatial kpis report section` · `docs(readme): spatial findings and release instructions` · `chore(repo): release tag v1.0`.
@@ -223,7 +227,7 @@ Tasks:
 - `src/analysis/spatial_weights.py` (`build_weights`, `local_clusters`) implemented and merged.
 
 **Phase 3 (D3) — Reassigned to Active Squad**
-- `notebooks/32_global_moran_lisa.ipynb`: Drafted; execution, cell outputs and map saving reassigned to **Jose Pech** (§4.1).
+- `notebooks/32_global_moran_lisa.ipynb`: Drafted; execution, cell outputs and map saving reassigned to **Jose Pech** (§4.1), including the full Global Moran / LISA acceptance criteria now listed there.
 - Report section 4 "Key KPIs and spatial analysis": Drafted; final summary table reassigned to **Jose Pech** (§4.1).
 
 ---
@@ -317,7 +321,7 @@ Read README.md, docs/team/TEAM_PLAN.md §4.5, and sql/01_schema.sql.
 Tasks, one commit each on branch valeria/<task>:
 1. notebooks/33_crime_patterns_bivariate.ipynb:
    - Part 1: Temporal analysis. Load view dw.v_crime_by_type_time with `from src.analysis.data import load_view; df = load_view('v_crime_by_type_time')`. Plot monthly trends, day-of-week, and time bands (Morning, Afternoon, Evening, Night) by crime category. Save figure to outputs/figures/crime_temporal_patterns.png.
-   - Part 2: Bivariate spatial association. Load data via `from src.analysis.data import load_kpis; gdf = load_kpis(city_core_only=True, exclude_low_population=True)`. Build Queen weights with `from src.analysis.spatial_weights import build_weights; w = build_weights(gdf, kind="queen")`. Calculate Bivariate Moran's I using `from esda.moran import Moran_BV; bv = Moran_BV(gdf['business_density_km2'], gdf['crime_rate_per_1k'], w, permutations=999, seed=42)`. Plot Moran scatterplot, report I, p-value, and z-score. Explain neighborhood rule and that association != causation. Save figure to outputs/figures/bivariate_moran_business_crime.png.
+   - Part 2: Bivariate spatial association. Load data via `from src.analysis.data import load_kpis; gdf = load_kpis(city_core_only=True, exclude_low_population=True)`. Build Queen weights with `from src.analysis.spatial_weights import build_weights; w = build_weights(gdf, kind="queen")`. Calculate Bivariate Moran's I using `import numpy as np; from esda.moran import Moran_BV; np.random.seed(42); bv = Moran_BV(gdf['business_density_km2'].to_numpy(), gdf['crime_rate_per_1k'].to_numpy(), w, permutations=999)`. Moran_BV does not accept a seed argument; set NumPy's seed immediately before each test. Plot the Moran scatterplot and report bv.I, bv.p_sim and bv.z_sim. Explain neighborhood rule and that association != causation. Save figure to outputs/figures/bivariate_moran_business_crime.png.
 2. report/sections/1_problem_data_sources.md: write report Section 1 "Problem and data sources". Explain the urban analytical problem, the 4 selected official sources (Census 2020, DENUE 05/2026, Marco Geo 2020, FGJ Crime 2024), their grains, and temporal coverage mismatch.
 ```
 
@@ -416,7 +420,7 @@ Each member writes their section as `report/sections/<n>_<topic>.md` (own commit
 |---|---|---|
 | 1. Problem and data sources | Valeria *(reassigned from Julio)* | Why, which sources, temporal coverage of each |
 | 2. Geographic integration strategy | Lorena | Unit choice, CRS, point-in-polygon results (kept/dropped %) |
-| 3. Data Warehouse architecture | Jose | Diagram, grains, pipeline in one figure (completed ✅) |
+| 3. Data Warehouse architecture | Jose | Diagram, grains, pipeline in one figure (drafted; verified crime count and final figure references pending) |
 | 4. Key KPIs and spatial analysis | Jose *(finalizing Nora's draft)* | KPI table, Moran/LISA results |
 | 5. Main findings (with maps) | Gustavo (each member sends 1–2 findings from their analysis) | Maps/figures + interpretation |
 | 6. Limitations and cautions | Valeria | Temporal mismatch, suppression, MAUP, data origin, association ≠ causation (completed ✅) |
