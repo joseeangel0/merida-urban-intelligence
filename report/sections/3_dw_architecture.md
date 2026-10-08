@@ -34,5 +34,5 @@ The validation script checks that every warehouse table has the same number of r
 |---|---|
 | `dim_geography` | 2,431 |
 | `fact_census_ageb` | 2,431 |
-| `fact_business` | ≈ 461,231 |
-| `fact_crime_incident` | _TBD_ |
+| `fact_business` | 461,231 |
+| `fact_crime_incident` | 112,285 |
