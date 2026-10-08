@@ -10,6 +10,8 @@ from pandas.api.types import infer_dtype
 
 from src.config import DATA_PROCESSED
 from src.transform.census import CENSUS_FILE, MEASURE_COLUMNS
+from src.transform.crime import _normalize
+from src.transform.crime_labels import CRIME_TYPE_TRANSLATIONS
 
 # Expected columns, in contract order, with the kind reported by pandas.api.types.infer_dtype
 AGEB_COLUMNS = {
@@ -304,8 +306,14 @@ def test_crime_geometry_is_point_in_epsg_6372(crime):
 
 def test_crime_rows_and_keys(crime):
     assert_row_count(crime, EXPECTED_CRIMES)
-    assert crime["source_incident_id"].is_unique
-    assert crime["source_incident_id"].str.fullmatch(rf"fgj{CRIME_YEAR}-[1-9]\d*").all()
+    assert_crime_source_ids(crime)
+
+
+def assert_crime_source_ids(frame: pd.DataFrame) -> None:
+    identifiers = frame["source_incident_id"]
+    assert identifiers.notna().all(), "Every incident must retain its source row identifier"
+    assert identifiers.is_unique
+    assert identifiers.str.fullmatch(rf"fgj{CRIME_YEAR}-[1-9]\d*").fillna(False).all()
 
 
 def test_crime_references_ageb(crime, ageb):
@@ -314,11 +322,60 @@ def test_crime_references_ageb(crime, ageb):
 
 
 def test_crime_hour_date_and_labels(crime):
-    assert crime["incident_hour"].between(-1, 23).all()
-    dates = pd.to_datetime(crime["incident_date"].dropna())
+    assert_crime_hour_date_and_labels(crime)
+
+
+def assert_crime_hour_date_and_labels(frame: pd.DataFrame) -> None:
+    assert frame["incident_hour"].notna().all(), "Unknown hours must be -1, never NULL"
+    assert frame["incident_hour"].between(-1, 23).fillna(False).all()
+    dates = pd.to_datetime(frame["incident_date"].dropna())
     assert dates.dt.year.eq(CRIME_YEAR).all()
-    assert crime["crime_category"].isin(CRIME_CATEGORIES).all()
-    assert crime[["crime_type", "crime_type_raw"]].notna().all().all()
-    assert crime.groupby("crime_type")["crime_category"].nunique().eq(1).all()
-    # crime_type is the harmonised English label: no Spanish accents or "ñ"
-    assert not crime["crime_type"].str.contains("[áéíóúñÁÉÍÓÚÑ]").any()
+    assert frame["crime_category"].isin(CRIME_CATEGORIES).all()
+    assert frame[["crime_type", "crime_type_raw"]].notna().all().all()
+    assert frame.groupby("crime_type")["crime_category"].nunique().eq(1).all()
+    # Check the approved translation for each preserved source label, not its alphabet.
+    expected_labels = frame["crime_type_raw"].map(_normalize).map(CRIME_TYPE_TRANSLATIONS)
+    assert expected_labels.notna().all(), "Every raw offence needs an approved translation"
+    assert frame["crime_type"].eq(expected_labels).fillna(False).all()
+
+
+@pytest.fixture
+def crime_contract_sample() -> pd.DataFrame:
+    """Small metadata-only regression fixture; never used as analytical source data."""
+    return pd.DataFrame({
+        "source_incident_id": pd.Series(["fgj2024-1", "fgj2024-2"], dtype="string"),
+        "incident_hour": pd.Series([-1, 23], dtype="Int64"),
+        "incident_date": [None, pd.Timestamp("2024-07-31").date()],
+        "crime_type": ["Rape", "Threats"],
+        "crime_type_raw": ["  VIOLACIÓN  ", "AMENAZAS"],
+        "crime_category": ["Sexual", "Violent"],
+    })
+
+
+def test_crime_contract_accepts_unknown_hour_nullable_date_and_accent_variant(crime_contract_sample):
+    assert_crime_source_ids(crime_contract_sample)
+    assert_crime_hour_date_and_labels(crime_contract_sample)
+
+
+@pytest.mark.parametrize("identifier", [pd.NA, "", "fgj2024-0", "fgj2023-1", "fgj2024-2"])
+def test_crime_contract_rejects_missing_malformed_or_duplicate_id(crime_contract_sample, identifier):
+    crime_contract_sample.loc[0, "source_incident_id"] = identifier
+    with pytest.raises(AssertionError):
+        assert_crime_source_ids(crime_contract_sample)
+
+
+@pytest.mark.parametrize("hour", [pd.NA, -2, 24])
+def test_crime_contract_rejects_missing_or_out_of_range_hour(crime_contract_sample, hour):
+    crime_contract_sample.loc[0, "incident_hour"] = hour
+    with pytest.raises(AssertionError):
+        assert_crime_hour_date_and_labels(crime_contract_sample)
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [("crime_type", "ROBO"), ("crime_type", "Fraud"), ("crime_type_raw", "UNREVIEWED OFFENCE")],
+)
+def test_crime_contract_rejects_unapproved_or_mismatched_label(crime_contract_sample, column, value):
+    crime_contract_sample.loc[0, column] = value
+    with pytest.raises(AssertionError):
+        assert_crime_hour_date_and_labels(crime_contract_sample)
