@@ -1,0 +1,227 @@
+crime_type,crime_category,incidents,share_pct
+Family Violence,Violent,20163,17.95698445918867
+Threats,Violent,11290,10.05477134078461
+Fraud,Property,8861,7.891526027519259
+Theft of Auto Parts and Accessories,Property,5485,4.884891125261611
+Theft of Personal Property,Property,4374,3.895444627510353
+Identity Theft,Property,3881,3.4563833103264017
+Theft from Vehicle Interior,Property,3384,3.013759629514183
+Robbery on Public Road with Violence,Property,3265,2.9077793115732287
+Negligent Traffic Damage to an Automobile,Other,2108,1.8773656320968963
+Sexual Abuse,Sexual,1856,1.6529367235160528
+Shoplifting at Commercial Business (Self-Service Stores),Property,1830,1.629781359932315
+Dispossession / Squatting,Property,1760,1.5674399964376364
+Residential Burglary without Violence,Property,1724,1.5353787237832301
+Intentional Assault and Battery,Violent,1659,1.4774903148238856
+Drug Possession (Simple),Other,1576,1.4035712695373381
+Shoplifting at Commercial Business,Property,1539,1.370619405975865
+Breach of Trust / Embezzlement,Property,1430,1.2735449971055794
+Business Theft without Violence,Property,1389,1.2370307699158392
+Motorcycle Theft without Violence,Property,1377,1.2263436790310371
+Drug Possession with Intent to Distribute,Other,1267,1.1283786792536847
+Negligent Injury in a Traffic Collision,Other,1226,1.0918644520639444
+Private Vehicle Theft without Violence,Property,1174,1.0455537248964688
+Attempted Extortion,Property,1079,0.9609475887251191
+Unlawful Debt Collection,Property,961,0.8558578616912321
+Theft of License Plate,Property,949,0.8451707708064301
+Intentional Property Damage to Automobile,Property,940,0.8371554526428285
+Robbery at Business with Violence,Property,939,0.8362648617357616
+Robbery in Parks or Markets with Violence,Property,922,0.8211248163156254
+Electoral Offences,Other,893,0.7952976800106871
+Pedal Vehicle Theft,Property,858,0.7641269982633477
+Theft on Public Road without Violence,Property,856,0.7623458164492141
+Intentional Damage to Another Person's Property,Property,837,0.7454245892149441
+Offence against Sexual Privacy,Sexual,788,0.7017856347686691
+Negligent Damage to Another Person's Property,Other,767,0.6830832257202654
+Sexual Harassment,Sexual,704,0.6269759985750546
+"Theft inside Businesses, Self-Service and Convenience Stores without Violence",Property,699,0.6225230440397204
+Discrimination,Violent,639,0.56908758961571
+Abuse of Authority and Unlawful Use of Public Force,Other,624,0.5557287260097075
+Robbery of a Vehicle Passenger or Driver with Violence,Property,594,0.5290109987977023
+Offence Legally Equivalent to Rape,Sexual,526,0.46845081711715725
+Theft from a Metro Passenger without Violence,Property,524,0.4666696353030236
+"Production, Printing, Sale, Distribution, Alteration or Forgery of Bearer Securities, Public Credit Documents or Vouchers",Property,506,0.45063899897582044
+Negligent Injury in Traffic,Other,475,0.42303068085674844
+"Unlawful Entry into a Home, Office or Business",Property,460,0.40967181725074586
+Private Vehicle Theft with Violence,Property,448,0.3989847263659438
+Document Theft,Property,431,0.38384468094580754
+Intentional Damage to a Residence,Property,396,0.3526739991984682
+"Theft at Mass Events (Sports, Cultural, Religious and Artistic) without Violence",Property,396,0.3526739991984682
+Concealment of an Offence,Other,393,0.35000222647726764
+"Forgery, Alteration and Misuse of Documents",Property,384,0.3419869083136661
+Intentional Damage to Real Property,Property,343,0.3054726811239257
+Homicide with a Firearm,Violent,331,0.29478559023912365
+Offence against the Administration of Justice,Other,311,0.2769737720977869
+Theft from a Public Transport Passenger without Violence,Property,301,0.2680678630271185
+Intentional Injury with a Bladed Weapon,Violent,295,0.2627243175847175
+Robbery of Delivery Personnel with Violence,Property,275,0.24491249944338067
+Animal Cruelty,Other,274,0.24402190853631384
+Theft from a Public or Private Taxi Passenger without Violence,Property,274,0.24402190853631384
+Theft of Money,Property,270,0.2404595449080465
+Extortion,Property,261,0.23244422674444493
+Rape,Sexual,258,0.22977245402324442
+Unlawful Retention of Minors,Other,250,0.2226477267667097
+Child Abduction,Other,235,0.20928886316070713
+Motorcycle Theft with Violence,Property,231,0.20572649953243977
+Breaking Official Seals,Other,224,0.1994923631829719
+Negligent Injury,Other,219,0.19503940864763772
+Theft from a Metrobus Passenger without Violence,Property,216,0.19236763592643719
+Negligent Homicide in Traffic (Collision),Other,205,0.18257113594870197
+Failure to Fulfil Maintenance Obligations,Other,202,0.17989936322750144
+False Statements to Authorities,Other,202,0.17989936322750144
+Denial of Public Service,Other,198,0.1763369995992341
+Intentional Injury with a Firearm,Violent,190,0.1692122723426994
+Deprivation of Personal Liberty,Violent,182,0.16208754508616466
+Failure to Provide Aid or Care,Other,182,0.16208754508616466
+Intentional Injury,Violent,172,0.15318163601549628
+Negligent Homicide in Traffic (Pedestrian Struck),Other,165,0.1469474996660284
+Bribery,Other,145,0.12913568152469163
+Corruption of Minors or Persons Unable to Understand or Resist the Act,Other,145,0.12913568152469163
+Theft from a Trolleybus Passenger without Violence,Property,143,0.12735449971055796
+Robbery of a Person at a Business with Violence,Property,134,0.1193391815469564
+Robbery of a Shared Minibus Passenger with Violence,Property,129,0.11488622701162221
+Negligent Injury from a Fall,Other,127,0.11310504519748853
+Theft of Property from a School,Property,123,0.10954268156922117
+Attempted Theft or Robbery,Property,122,0.10865209066215434
+Residential Burglary with Violence,Property,113,0.1006367724985528
+Unlawful Exercise and Abandonment of Public Service,Other,102,0.09084027252081757
+Professional and Technical Liability Offence,Other,95,0.0846061361713497
+Intentional Damage to a Business,Property,92,0.08193436345014918
+Use of a Forged Document,Other,91,0.08104377254308233
+Attack on General Transport Routes,Other,88,0.07837199982188182
+Negligent Traffic Damage to Real Property,Other,87,0.07748140891481498
+Unlawful Carrying of a Firearm,Other,82,0.07302845437948079
+Theft from Delivery Personnel without Violence,Property,76,0.06768490893707975
+Attempted Homicide,Violent,75,0.06679431803001291
+Robbery of a Public or Private Taxi Passenger with Violence,Property,72,0.0641225453088124
+Robbery of a Public or Private Taxi Driver with Violence,Property,69,0.061450772587611883
+Theft from a Shared Minibus Passenger without Violence,Property,67,0.0596695907734782
+Robbery of a Public Transport Passenger with Violence,Property,66,0.058778999866411365
+Public Office Theft without Violence,Property,60,0.053435454424010334
+Missing and Absent Persons,Other,58,0.05165427260987665
+Shoplifting at Commercial Business (Convenience Stores),Property,58,0.05165427260987665
+Negligent Homicide in Traffic (Fall),Other,57,0.050763681702809815
+Environmental Offences,Other,56,0.04987309079574297
+Homicide with a Bladed Weapon,Violent,56,0.04987309079574297
+Public Service Vehicle Theft without Violence,Property,56,0.04987309079574297
+Discharge of a Firearm,Violent,55,0.04898249988867614
+Illegal Logging,Other,53,0.04720131807454246
+Weapon Theft,Property,53,0.04720131807454246
+Disobedience and Resistance by Private Individuals,Other,51,0.045420136260408785
+Negligent Injury from Falling off a Moving Vehicle,Other,51,0.045420136260408785
+"Offences by Lawyers, Legal Representatives, Litigants and Legal Advisers",Other,48,0.042748363539208266
+"Theft from Semi-Fixed Stalls (Food, Drinks, Household Goods, Newspapers, Lottery and Other)",Property,47,0.041857772632141424
+Animal Theft,Property,44,0.03918599991094091
+Robbery of a Person Leaving a Bank with Violence,Property,44,0.03918599991094091
+Attempted Femicide,Violent,41,0.03651422718974039
+Disobedience by Private Individuals,Other,39,0.034733045375606716
+Abortion,Other,38,0.033842454468539875
+Disclosure of Secrets,Other,38,0.033842454468539875
+Aggravated Sexual Harassment of Minors,Sexual,36,0.0320612726544062
+Public Service Vehicle Theft with Violence,Property,36,0.0320612726544062
+Theft of Fluids,Property,36,0.0320612726544062
+Homicide by Beating,Violent,35,0.03117068174733936
+Negligent Injury from Burns,Other,35,0.03117068174733936
+Shoplifting with Violence (Self-Service Stores),Property,33,0.029389499933205682
+Robbery of a Person Leaving an ATM with Violence,Property,32,0.028498909026138844
+Attempted Suicide,Violent,31,0.027608318119072005
+Unlawful Practice of a Profession,Property,27,0.024045954490804648
+Usurpation of Public Functions,Property,27,0.024045954490804648
+Pollution or Waste Offence,Other,26,0.02315536358373781
+Electric Scooter Theft,Property,25,0.02226477267667097
+Intentional Homicide (Other),Violent,25,0.02226477267667097
+Intentional Damage to Transport Routes,Property,24,0.021374181769604133
+Jewellery Theft,Property,24,0.021374181769604133
+Theft from an RTP Bus Passenger without Violence,Property,24,0.021374181769604133
+Group Offence Legally Equivalent to Rape,Sexual,23,0.020483590862537294
+Offence Legally Equivalent to Rape by an Acquaintance,Sexual,23,0.020483590862537294
+Attempted Fraud,Property,22,0.019592999955470456
+Theft from a Suburban Train Passenger without Violence,Property,22,0.019592999955470456
+Torture,Violent,20,0.017811818141336776
+Negligent Injury in a Workplace Accident,Other,19,0.016921227234269937
+Pornography Offence,Sexual,19,0.016921227234269937
+Theft from a Light Rail Passenger without Violence,Property,19,0.016921227234269937
+"Carrying, Manufacture and Import of Objects Suitable for Assault",Other,18,0.0160306363272031
+Human Trafficking,Sexual,18,0.0160306363272031
+Robbery of a Metro Passenger with Violence,Property,18,0.0160306363272031
+Robbery of a Person at a Restaurant with Violence,Property,18,0.0160306363272031
+Residential Burglary and Vehicle Theft without Violence,Property,17,0.01514004542013626
+Gang Rape,Sexual,16,0.014249454513069422
+Robbery of an RTP Bus Passenger with Violence,Property,16,0.014249454513069422
+Attempted Rape,Sexual,14,0.012468272698935743
+"Offence Involving Burial, Exhumation or Respect for Human Remains",Other,14,0.012468272698935743
+Concealment by Assisting an Offender,Other,13,0.011577681791868905
+Femicide with a Bladed Weapon,Violent,13,0.011577681791868905
+Unlawful Deprivation of Liberty and Vehicle Theft,Property,13,0.011577681791868905
+Attempted Vehicle Theft,Property,12,0.010687090884802066
+"Forgery of Seals, Marks, Keys, Stamps, Dies, Passwords and Other Items",Property,12,0.010687090884802066
+Misrepresentation of Name or Address,Other,12,0.010687090884802066
+Negligent Traffic Damage to Transport Routes,Other,12,0.010687090884802066
+"Soil Damage (Activity, Encroachment or Extraction)",Other,11,0.009796499977735228
+Femicide by Beating,Violent,10,0.008905909070668388
+Sexual Intercourse with a Minor Obtained by Deception,Sexual,10,0.008905909070668388
+Environmental Management Offence,Other,9,0.00801531816360155
+Robbery of a Trolleybus Passenger with Violence,Property,9,0.00801531816360155
+Theft of Trailer Containers without Violence,Property,9,0.00801531816360155
+Influence Peddling,Other,8,0.007124727256534711
+Misuse of Official Powers and Authority,Other,8,0.007124727256534711
+Public Office Robbery with Violence,Property,8,0.007124727256534711
+Violation of Correspondence Privacy,Other,8,0.007124727256534711
+Intimidation,Other,7,0.006234136349467872
+Negligent Homicide with Grounds Excluding Liability,Other,7,0.006234136349467872
+Residential Burglary and Vehicle Theft with Violence,Property,7,0.006234136349467872
+Shoplifting with Violence (Convenience Stores),Property,7,0.006234136349467872
+Theft of Goods from Containers in Federal Areas,Property,7,0.006234136349467872
+"Vehicle Theft at Parking Facilities, Workshops or Dealerships without Violence",Property,7,0.006234136349467872
+Femicide,Violent,6,0.005343545442401033
+"Gang Activity, Criminal Association and Organized Crime",Other,6,0.005343545442401033
+Prisoner Escape,Other,6,0.005343545442401033
+Robbery of Delivery Personnel and Vehicle with Violence,Property,6,0.005343545442401033
+Robbery of a Metrobus Passenger with Violence,Property,6,0.005343545442401033
+Theft of Goods from a Freight Carrier with Violence,Property,6,0.005343545442401033
+Attack on Transport Routes (Damage to Routes or Vehicles),Other,5,0.004452954535334194
+Bank Branch Theft without Violence,Property,5,0.004452954535334194
+Intentional Injury by Burning,Violent,5,0.004452954535334194
+Kidnapping,Violent,5,0.004452954535334194
+Unlawful Exercise of One's Own Rights,Other,5,0.004452954535334194
+Business Robbery and Vehicle Theft with Violence,Property,4,0.0035623636282673555
+Business and Vehicle Theft without Violence,Property,4,0.0035623636282673555
+Deprivation of Personal Liberty to Perform a Sexual Act,Sexual,4,0.0035623636282673555
+Offence against Public Officials,Other,4,0.0035623636282673555
+Theft from an Intercity Bus Passenger without Violence,Property,4,0.0035623636282673555
+Unlawful Land Use Change,Other,4,0.0035623636282673555
+"Unlawful Manufacture, Sale and Use of Insignia and Uniforms",Other,4,0.0035623636282673555
+Bigamy,Other,3,0.0026717727212005166
+Cell Phone Robbery with Violence,Property,3,0.0026717727212005166
+Enforced Disappearance,Other,3,0.0026717727212005166
+Femicide by Firearm Discharge,Violent,3,0.0026717727212005166
+Machinery Theft with Violence,Property,3,0.0026717727212005166
+Negligent Homicide in Traffic,Other,3,0.0026717727212005166
+Negligent Homicide with a Firearm,Other,3,0.0026717727212005166
+Negligent Injury with Grounds Excluding Liability,Other,3,0.0026717727212005166
+Official Service Vehicle Theft without Violence,Property,3,0.0026717727212005166
+Robbery of a Freight Carrier and Heavy Vehicle with Violence,Property,3,0.0026717727212005166
+Robbery of a Light Rail Passenger with Violence,Property,3,0.0026717727212005166
+Robbery of a Person at a Hotel with Violence,Property,3,0.0026717727212005166
+Robbery of a Suburban Train Passenger with Violence,Property,3,0.0026717727212005166
+Exposure to Infection,Other,2,0.0017811818141336777
+Express Kidnapping for Robbery or Extortion,Violent,2,0.0017811818141336777
+Illicit Enrichment,Property,2,0.0017811818141336777
+Obstruction of Public Works,Other,2,0.0017811818141336777
+Theft from a Freight Carrier and Heavy Vehicle without Violence,Property,2,0.0017811818141336777
+Transactions with Illicit Proceeds,Other,2,0.0017811818141336777
+Transport Service Vehicle Theft with Violence,Property,2,0.0017811818141336777
+Abusive Exercise of Public Functions,Other,1,0.0008905909070668389
+Embezzlement of Public Funds,Other,1,0.0008905909070668389
+"Labour Exploitation of Minors, Persons with Disabilities and Older Adults",Other,1,0.0008905909070668389
+Offence against Civil Status,Other,1,0.0008905909070668389
+Official Service Vehicle Theft with Violence,Property,1,0.0008905909070668389
+Procuring Prostitution,Other,1,0.0008905909070668389
+Robbery of an Ecobus Passenger with Violence,Property,1,0.0008905909070668389
+Robbery of an Intercity Bus Passenger with Violence,Property,1,0.0008905909070668389
+Sabotage,Other,1,0.0008905909070668389
+Theft during Cash Transport (Payroll) with Violence,Property,1,0.0008905909070668389
+Theft from Delivery Personnel and Vehicle without Violence,Property,1,0.0008905909070668389
+Theft from an Ecobus Passenger without Violence,Property,1,0.0008905909070668389
+Transport Service Vehicle Theft without Violence,Property,1,0.0008905909070668389
+Urban Regulation Offence,Other,1,0.0008905909070668389
