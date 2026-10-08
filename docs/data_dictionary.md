@@ -49,7 +49,46 @@ Rows (4):
 
 ## fact_census_ageb — _owner: Julio_
 
-_TODO: column, description, source variable, unit, handling of suppressed values._
+**dw.fact_census_ageb** — grain: one urban AGEB of Mexico City, Census 2020
+snapshot (2,431 rows, one per `dim_geography` row). Source: the AGEB total rows
+(`MZA = '000'`, `AGEB <> '0000'`) of INEGI *Principales resultados por AGEB y
+manzana urbana* (`census_ageb_2020_09`); block, locality, alcaldía and state
+total rows are not loaded. The 2 census AGEBs without a polygon in the 2020
+frame (`0901101101107`, `0901201351227`, 7,108 residents) are dropped by
+[`src/transform/census.py`](../src/transform/census.py).
+
+**Suppressed values.** INEGI publishes `*` when a value could identify a
+household and `N/D` when it is not available. Both are stored as NULL, never 0,
+and counted in `n_suppressed_fields`; zeros are genuine zeros. In Mexico City 73
+AGEBs (0.30 % of the population) have at least one suppressed field, there are
+no `N/D` codes, and `pop_total` is never suppressed. Sums skip NULLs, so compute
+a rate only where both terms are non-NULL.
+
+| Column | Type | Source variable | Description | Unit |
+|---|---|---|---|---|
+| `geo_key` | int PK, FK | `cvegeo` | AGEB in `dim_geography` | — |
+| `source_key` | smallint FK | — | `census_ageb_2020_09` in `dim_source` | — |
+| `census_year` | smallint | — | Always 2020 | year |
+| `pop_total` | int, not null | `POBTOT` | Total residents | residents |
+| `pop_female`, `pop_male` | int | `POBFEM`, `POBMAS` | Residents by sex; add up to `pop_total` | residents |
+| `pop_0_14`, `pop_15_64`, `pop_65_plus` | int | `POB0_14`, `POB15_64`, `POB65_MAS` | Broad age groups; may add up to less than `pop_total` (age not specified) | residents |
+| `pop_12_plus` | int | `P_12YMAS` | Residents aged 12+, the base of `pea_rate` | residents |
+| `pop_18_plus`, `pop_60_plus` | int | `P_18YMAS`, `P_60YMAS` | Adults, older adults | residents |
+| `pea` | int | `PEA` | Economically active population (aged 12+) | residents |
+| `pea_female`, `pea_male` | int | `PEA_F`, `PEA_M` | Economically active by sex; add up to `pea` | residents |
+| `pop_inactive` | int | `PE_INAC` | Economically inactive (aged 12+) | residents |
+| `pop_employed`, `pop_unemployed` | int | `POCUPADA`, `PDESOCUP` | Employed / unemployed; add up to `pea` | residents |
+| `avg_schooling` | numeric(5,2) | `GRAPROES` | Average years of schooling (aged 15+) | years |
+| `households` | int | `TOTHOG` | Census households | households |
+| `dwellings_total`, `dwellings_inhabited` | int | `VIVTOT`, `TVIVHAB` | Total / inhabited dwellings | dwellings |
+| `avg_occupants` | numeric(5,2) | `PROM_OCUP` | Average occupants per inhabited private dwelling | residents / dwelling |
+| `n_suppressed_fields` | smallint, not null | derived | Number of the 20 source variables above published as `*` or `N/D` (0–20) | count |
+
+Reference totals, asserted by `census.py`: Σ `pop_total` = 9,138,524 (also
+checked by `sql/04_validation.sql`; 99.2 % of the state total, 9,209,944, the
+rest live in rural localities or the 2 AGEBs without polygon), Σ `pea` =
+5,061,682, Σ `pop_12_plus` = 7,858,894. Profiling and the variable list:
+[`notebooks/11_profile_census.ipynb`](../notebooks/11_profile_census.ipynb).
 
 ## dim_economic_activity, dim_business_size, fact_business — _owner: Nora_
 
