@@ -238,8 +238,14 @@ reads `dw.v_crime_by_type_time` with `load_view()` and `dw.v_kpi_ageb` with
 and reconcile to **112,285** retained files. Calendar-day averages use the
 profiled **1 January–31 July 2024** window (213 days); August–December remain
 unavailable, rather than zero-crime months. Unknown hours are retained
-separately (170 files). April has the highest observed monthly average
-(565.23 files/day); this is descriptive and does not establish annual seasonality.
+separately (170 files). July is right-censored: offences whose files were
+opened after the 31 July cutoff are missing, so its per-day average is 23.4%
+below January–June and the charts hatch it as partial. Excluding July raises
+every weekday average by 2.6–5.2% and Friday remains the highest weekday
+([`crime_weekday_sensitivity.csv`](outputs/figures/crime_weekday_sensitivity.csv)).
+April and May have the highest monthly averages (565.23 and 562.87 files/day,
+0.4% apart); the ranking is not robust to reporting lag and does not establish
+seasonality.
 Charts and summary tables are exported to `outputs/figures/`, including the
 month, weekday and time-band comparison by analytical category in
 [`crime_temporal_patterns.png`](outputs/figures/crime_temporal_patterns.png).
@@ -255,6 +261,13 @@ components and no remaining islands. With **999 permutations**, seed **42**:
 |---|---:|---:|---:|
 | Raw (primary) | 0.201020 | 0.206815 | 0.001 |
 | log1p (sensitivity) | 0.178525 | 0.182574 | 0.001 |
+
+The scatterplot quadrants ([`33_bivariate_quadrants.csv`](outputs/figures/33_bivariate_quadrants.csv))
+are descriptive. On the raw scale about half of the AGEBs are LL (49.9% with
+Queen) and only 10.8% HH, because a few extreme AGEBs pull the means up; on the
+log1p scale HH (31.8%) and LL (23.9%) are more balanced. HL is large in every
+specification (26.2–31.6%): many AGEBs with above-average business density
+border below-average crime rates.
 
 These specifications show positive spatial association in this sample. PySAL's
 `p_sim` is the smaller-tail permutation pseudo p-value, with a minimum of 0.001

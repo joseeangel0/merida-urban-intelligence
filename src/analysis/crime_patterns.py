@@ -1,6 +1,5 @@
 """Temporal summaries and figures from ``dw.v_crime_by_type_time`` only."""
 
-import calendar
 from pathlib import Path
 import textwrap
 
@@ -21,21 +20,31 @@ REQUIRED_COLUMNS = {
     "year", "month", "day_of_week", "time_band", "crime_type",
     "crime_category", "incidents",
 }
+# English labels as in dw.dim_date; calendar.* names would follow the process locale.
+MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+# Filing window (fecha_inicio) profiled for the pinned FGJ CSV with this SHA-256.
+# Re-profile both values if the warehouse is built from another file version.
+CRIME_COVERAGE = ("2024-01-01", "2024-07-31")
+CRIME_COVERAGE_SHA256 = "2ac3f17189a61ab7b2eb95fb21470e46adaba6f92526c7b92d23190ed2431f84"
 SOURCE_NOTE = "Source: FGJ CDMX investigation files / dw.v_crime_by_type_time. Offence date; urban AGEBs only."
 
 
 def temporal_tables(
     frame: pd.DataFrame, year: int = CRIME_YEAR,
-    coverage_start: str | None = None, coverage_end: str | None = None,
+    coverage_start: str | None = CRIME_COVERAGE[0], coverage_end: str | None = CRIME_COVERAGE[1],
 ) -> dict[str, pd.DataFrame]:
     """Sum incident weights, including absent periods and unknown hours.
 
     The view is already aggregated by AGEB/type/time. Counting its rows would
     undercount the incidents. Calendar-day denominators correct for month length
     and unequal weekday frequency in the study year; they are not population
-    rates or an adjustment for reporting/coordinate availability. Supply the
-    profiled source window for a partial-year snapshot. Months outside that
-    window are unavailable (NULL), not observed zero-crime months.
+    rates or an adjustment for reporting/coordinate availability. The window
+    defaults to the profiled coverage of the pinned source; None means the
+    whole study year. Months outside the window are unavailable (NULL), not
+    observed zero-crime months. The month holding the window end is flagged
+    ``right_censored``: offences near the filing cutoff whose files were opened
+    later are missing.
     """
     missing = REQUIRED_COLUMNS.difference(frame.columns)
     if missing:
@@ -74,15 +83,16 @@ def temporal_tables(
     months = pd.Index(range(1, 13), name="month")
     monthly = data.groupby("month")["incidents"].sum().reindex(months, fill_value=0).to_frame()
     monthly["incidents"] = monthly["incidents"].astype("Int64")
-    monthly["month_name"] = [calendar.month_abbr[month] for month in months]
+    monthly["month_name"] = MONTH_ABBR
     monthly["calendar_days"] = pd.Series(calendar_dates.month).value_counts().reindex(months, fill_value=0).to_numpy()
     monthly.loc[monthly["calendar_days"].eq(0), "incidents"] = pd.NA
     monthly["incidents_per_day"] = monthly["incidents"] / monthly["calendar_days"].replace(0, np.nan)
+    monthly["right_censored"] = monthly.index == end.month
     monthly.attrs["coverage"] = f"{start.date()} to {end.date()}"
 
     weekdays = pd.Index(range(1, 8), name="day_of_week")
     daily = data.groupby("day_of_week")["incidents"].sum().reindex(weekdays, fill_value=0).to_frame()
-    daily["day_name"] = list(calendar.day_name)
+    daily["day_name"] = DAY_NAMES
     exposures = pd.Series(calendar_dates.dayofweek + 1).value_counts().reindex(weekdays, fill_value=0)
     daily["calendar_days"] = exposures.to_numpy()
     daily["incidents_per_day"] = daily["incidents"] / daily["calendar_days"].replace(0, np.nan)
@@ -113,6 +123,35 @@ def temporal_tables(
             "crime_type": types, "weekday_time_band_per_day": heatmap, **category_tables}
 
 
+def censoring_sensitivity(
+    frame: pd.DataFrame, sensitivity_end: str, year: int = CRIME_YEAR,
+    coverage_start: str | None = CRIME_COVERAGE[0], coverage_end: str | None = CRIME_COVERAGE[1],
+) -> pd.DataFrame:
+    """Weekday averages on the full window and on complete months only.
+
+    Dropping the months after ``sensitivity_end`` removes the right-censored tail
+    of the filing window. It shows whether the weekday pattern depends on that
+    tail; it is a sensitivity check, not a reporting-lag correction.
+    """
+    end = pd.Timestamp(sensitivity_end)
+    if end != end + pd.offsets.MonthEnd(0):
+        raise ValueError("sensitivity_end must be the last day of a month")
+    if end >= pd.Timestamp(coverage_end or f"{year}-12-31"):
+        raise ValueError("sensitivity_end must fall before the end of the coverage window")
+    primary = temporal_tables(frame, year, coverage_start, coverage_end)["weekday"]
+    complete_months = frame[pd.to_numeric(frame["month"], errors="raise") <= end.month]
+    complete = temporal_tables(complete_months, year, coverage_start, sensitivity_end)["weekday"]
+    comparison = pd.DataFrame({
+        "day_name": primary["day_name"],
+        "full_window_per_day": primary["incidents_per_day"],
+        "complete_months_per_day": complete["incidents_per_day"],
+    })
+    comparison["change_pct"] = 100 * (comparison["complete_months_per_day"] / comparison["full_window_per_day"] - 1)
+    for column in ["full_window_per_day", "complete_months_per_day"]:
+        comparison[column.replace("per_day", "rank")] = comparison[column].rank(ascending=False, method="min").astype(int)
+    return comparison
+
+
 def export_temporal_tables(tables: dict[str, pd.DataFrame], output_dir: Path) -> dict[str, Path]:
     """Export reproducible summary tables alongside figures."""
     output_dir = Path(output_dir)
@@ -137,7 +176,8 @@ def save_temporal_figures(
 
     def save(fig, name):
         fig.text(0.015, 0.017, SOURCE_NOTE + "\nProfiled filing window: "
-                 + tables["monthly"].attrs["coverage"] + ". No annualisation or reporting-lag adjustment.",
+                 + tables["monthly"].attrs["coverage"] + "; its final month is right-censored (later reports missing)."
+                 " No annualisation or reporting-lag adjustment.",
                  fontsize=8, color="#4b5563")
         fig.tight_layout(rect=(0, 0.055, 1, 0.95))
         filename = "crime_temporal_patterns.png" if name == "temporal_patterns" else f"crime_{name}_{year}.png"
@@ -153,6 +193,18 @@ def save_temporal_figures(
         ax.yaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
 
     monthly = tables["monthly"]
+    month_note = "shaded: outside the source window; hatched: partial, later reports missing"
+
+    def mark_months(ax):
+        for position in np.flatnonzero(monthly["calendar_days"].eq(0)):
+            ax.axvspan(position - 0.45, position + 0.45, color="#eef0f2", zorder=0)
+        for position in np.flatnonzero(monthly["right_censored"] & monthly["calendar_days"].gt(0)):
+            ax.axvspan(position - 0.35, position + 0.35, facecolor="none", edgecolor="#9aa3ab",
+                       hatch="///", linewidth=0, zorder=3)
+            ax.text(position, 0.98, "Partial", transform=ax.get_xaxis_transform(), ha="center", va="top",
+                    fontsize=8, color="#4b5563", zorder=4,
+                    bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.5})
+
     fig, axes = plt.subplots(2, 1, figsize=(11, 7), sharex=True)
     fig.suptitle(f"Recorded crime by offence month | CDMX {year}", fontsize=16)
     axes[0].bar(monthly["month_name"], monthly["incidents"].to_numpy(dtype=float, na_value=np.nan),
@@ -162,10 +214,9 @@ def save_temporal_figures(
                  color="#ba4a45", marker="o")
     axes[1].set_ylabel("Files per calendar day")
     axes[1].set_ylim(bottom=0)
-    axes[1].set_xlabel("Offence month (shaded months outside the source window are unavailable)")
+    axes[1].set_xlabel(f"Offence month ({month_note})")
     for ax in axes:
-        for position in np.flatnonzero(monthly["calendar_days"].eq(0)):
-            ax.axvspan(position - 0.45, position + 0.45, color="#eef0f2", zorder=0)
+        mark_months(ax)
         style(ax)
     save(fig, "monthly")
 
@@ -229,7 +280,7 @@ def save_temporal_figures(
     fig, axes = plt.subplots(3, 1, figsize=(12, 11))
     fig.suptitle(f"Recorded crime by analytical category | CDMX {year}", fontsize=16)
     panels = [
-        ("month_by_category", monthly["month_name"].tolist(), "Offence month (shaded months unavailable)"),
+        ("month_by_category", monthly["month_name"].tolist(), f"Offence month ({month_note})"),
         ("day_of_week_by_category", [day[:3] for day in weekdays["day_name"]], "Offence weekday"),
         ("time_band_by_category", TIME_BANDS, "Offence time band (unknown hours retained)"),
     ]
@@ -242,8 +293,7 @@ def save_temporal_figures(
             ax.bar(positions, values, bottom=bottom, color=colors[category], label=category, width=0.7)
             bottom += values
         if name == "month_by_category":
-            for position in np.flatnonzero(monthly["calendar_days"].eq(0)):
-                ax.axvspan(position - 0.45, position + 0.45, color="#eef0f2", zorder=0)
+            mark_months(ax)
         ax.set_xticks(positions, labels)
         ax.set_xlabel(xlabel)
         ax.set_ylabel("Investigation files")

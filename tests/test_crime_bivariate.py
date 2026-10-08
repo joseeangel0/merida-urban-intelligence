@@ -6,7 +6,7 @@ import pytest
 from libpysal.weights import lag_spatial
 from shapely.geometry import box
 
-from src.analysis.crime_bivariate import bivariate_results
+from src.analysis.crime_bivariate import bivariate_quadrants, bivariate_results
 
 
 @pytest.fixture
@@ -45,6 +45,23 @@ def test_permutations_reproduce_and_preserve_callers_random_state(sample):
     _, second = bivariate_results(sample, permutations=19)
     for key in first:
         np.testing.assert_array_equal(first[key].sim, second[key].sim)
+
+
+def test_quadrants_classify_x_against_spatial_lag_of_y(sample):
+    _, statistics = bivariate_results(sample, permutations=19)
+    quadrants = bivariate_quadrants(statistics)
+    assert len(quadrants) == 4 and quadrants.n.eq(9).all()
+    assert (quadrants[["n_HH", "n_LH", "n_LL", "n_HL"]].sum(axis=1) == 9).all()
+    assert quadrants[["pct_HH", "pct_LH", "pct_LL", "pct_HL"]].sum(axis=1).to_numpy() == pytest.approx(np.full(4, 100))
+    statistic = statistics[("queen", "raw")]
+    x_high = statistic.zx > 0
+    lag_high = lag_spatial(statistic.w, statistic.zy) > 0
+    queen_raw = quadrants.iloc[0]
+    assert (queen_raw.weights, queen_raw.scale) == ("Queen", "raw")
+    assert queen_raw.n_HH == (x_high & lag_high).sum()
+    assert queen_raw.n_LH == (~x_high & lag_high).sum()
+    assert queen_raw.n_LL == (~x_high & ~lag_high).sum()
+    assert queen_raw.n_HL == (x_high & ~lag_high).sum()
 
 
 @pytest.mark.parametrize("bad_value", [np.nan, np.inf, -1])
