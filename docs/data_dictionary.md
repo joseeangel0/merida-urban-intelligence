@@ -4,7 +4,32 @@ Concise dictionary of the `dw` schema (see [`sql/01_schema.sql`](../sql/01_schem
 
 ## dim_geography — _owner: Lorena_
 
-_TODO_
+**`dw.dim_geography`** — grain: one row per urban AGEB in Mexico City. The
+2020 Marco Geoestadístico layer contains **2,431 rows** across the 16 alcaldías:
+**2,348** belong to the main locality of their alcaldía (`is_city_core = TRUE`)
+and 83 belong to other urban localities. The mapped area totals **792.15 km²**.
+`geo_key` is the warehouse surrogate key; `cvegeo` is the unique 13-character
+INEGI geographic code (`cve_ent` + `cve_mun` + `cve_loc` + `cve_ageb`).
+
+| Column | Type | Description |
+|---|---|---|
+| `geo_key` | serial PK | Warehouse surrogate key referenced by the census, business and crime facts |
+| `cvegeo` | char(13), unique, not null | INEGI key: state (2) + municipality (3) + locality (4) + AGEB (4) |
+| `cve_ent` | char(2), not null | State code; `09` for Mexico City |
+| `cve_mun` | char(3), not null | Municipality/alcaldía code |
+| `mun_name` | text, not null | Name of one of the 16 alcaldías |
+| `cve_loc` | char(4), not null | Locality code; `0001` identifies the main locality in each alcaldía |
+| `loc_name` | text, not null | INEGI locality name |
+| `cve_ageb` | char(4), not null | Urban AGEB code within its locality |
+| `is_city_core` | boolean, not null | True when `cve_loc = '0001'`; 2,348 AGEBs form the contiguous main city sample |
+| `area_km2` | numeric(12,4), not null | Polygon area in square kilometres; positive, **792.15 km²** total |
+| `geom` | geometry(MultiPolygon, 6372), not null | Urban AGEB boundary in Mexico ITRF2008 / Lambert Conformal Conic (EPSG:6372) |
+
+The AGEB polygons originate in INEGI's Marco Geoestadístico 2020. The CRS is
+projected in metres, so area and density calculations use consistent metric
+units. The `cvegeo` used to match census aggregates is preserved alongside the
+surrogate key; point facts reference `geo_key` after their coordinates have
+been assigned to the containing polygon.
 
 ## dim_source, dim_date, dim_hour — _owner: Jose_
 
