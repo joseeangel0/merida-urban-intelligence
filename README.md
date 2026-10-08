@@ -209,19 +209,16 @@ Ratios with a zero denominator are `NULL`. `low_population` flags the 55 AGEBs w
 
 ## 7. Spatial analysis
 
-_TODO (Julio, Nora, Lorena, Valeria, Gustavo): neighbourhood rule, correlation, Global Moran's I, LISA, bivariate Moran's I, findings._
+The spatial analysis workflow evaluates territorial clustering across the 2,348 city-core AGEBs of Mexico City (`cve_loc = '0001'`).
+Spatial weight matrices are row-standardised: primary analyses use **Queen contiguity** (attaching the single Queen island to its nearest neighbour), with **KNN-6** providing a sensitivity check. Rate indicators (`crime_rate_per_1k`, `pea_rate`) exclude the 51 low-population AGEBs (< 100 residents) to prevent extreme denominator distortion ($n = 2,297$).
 
-Nora's reproducible spatial workflow uses the 2,348 city-core AGEBs of Mexico
-City (the main locality of each alcaldía). The primary weights are
-row-standardised Queen contiguity; the single Queen island is attached to its
-nearest neighbour. Row-standardised KNN with `k=6` is the sensitivity check.
-Rate indicators (crime rate, PEA rate) exclude the AGEBs with fewer than 100
-residents. `notebooks/32_global_moran_lisa.ipynb` calculates Global Moran's I
-with 999 permutations, compares both neighbourhood rules, produces Moran
-scatterplots, and maps significant Local Moran clusters (HH, LL, HL and LH) at
-α = 0.05 with `src.analysis.spatial_weights.local_clusters` (fixed seed 42, so
-results are reproducible). These statistics describe spatial association and do
-not establish causal relationships.
+Key spatial findings from `notebooks/32_global_moran_lisa.ipynb` (999 permutations, seed 42, $\alpha = 0.05$):
+- **Global Spatial Autocorrelation:** All indicators display statistically significant positive spatial autocorrelation ($p = 0.001$, $E[I] = -0.0004$), indicating structured geographic clustering rather than random dispersion. Economically active population rate ($I = 0.506$), business density ($I = 0.462$), and population density ($I = 0.434$) show strong positive clustering, while crime rate exhibits moderate positive clustering ($I = 0.210$). Results remain consistent under KNN-6 sensitivity testing ($I = 0.500, 0.458, 0.451, 0.179$, respectively).
+- **Local Moran (LISA) Clusters:**
+  - *Business density:* High-High commercial clusters concentrate in central alcaldías (Cuauhtémoc, Benito Juárez, Miguel Hidalgo; 109 AGEBs), contrasted with 312 Low-Low AGEBs in peripheral residential sectors.
+  - *Crime rate:* 110 High-High clusters center around core commercial and transit corridors, while 344 Low-Low clusters form across peripheral and residential areas.
+- **Methodological caution:** Spatial association describes geographic clustering patterns and does not establish causal mechanisms between neighbouring units.
+
 
 ## 8. Reproducing the project
 
