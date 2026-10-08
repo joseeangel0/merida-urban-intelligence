@@ -5,8 +5,6 @@ temporal coverage windows, and data attrition across Marco Geoestadístico 2020,
 Censo de Población y Vivienda 2020, DENUE 05/2026, and FGJ CDMX Crime 2024.
 """
 
-import hashlib
-import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -15,96 +13,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from src.config import CRIME_YEAR, DATA_PROCESSED, DATA_RAW, OUTPUT_FIGURES
+from src.config import CRIME_YEAR, DATA_RAW, OUTPUT_FIGURES
+from src.analysis.provenance import (
+    PINNED_CRIME_SHA256,
+    PINNED_MANIFEST_DIGESTS as PINNED_MANIFEST_DIGESTS,
+    _hash_file,
+    verify_input_provenance as verify_input_provenance,
+)
 from src.transform.census import SUPPRESSED_CODES, read_census, select_ageb_rows
 from src.transform.denue import parse_alta_date, read_denue
 from src.transform.spatial import assign_ageb, load_ageb, points_from_latlon
-
-# Cryptographically pinned SHA-256 digests from data/raw/manifest.json
-PINNED_MANIFEST_DIGESTS = {
-    "census_ageb_2020_09": "1f5f123b8e9a50991d1847271b5a2bf321e813e924e5bcf958cab612311c765a",
-    "denue_09": "ae608f30118f6313e9d537ea22918b2c9e9a3d3f19c2ddf5907f55dbb1642b19",
-    "marco_geo_2020_09": "685b912f5458138a70726cff41aff828473e14264c43289d3b21f86a9df00320",
-    "crime_fgj_2024": "2ac3f17189a61ab7b2eb95fb21470e46adaba6f92526c7b92d23190ed2431f84",
-}
-PINNED_CRIME_SHA256 = PINNED_MANIFEST_DIGESTS["crime_fgj_2024"]
-
-
-def _hash_file(path: Path) -> str:
-    """Compute SHA-256 digest of a file in 64 KiB chunks."""
-    hasher = hashlib.sha256()
-    with open(path, "rb") as f:
-        while chunk := f.read(65536):
-            hasher.update(chunk)
-    return hasher.hexdigest()
-
-
-def verify_input_provenance(raw_dir: Path | None = None) -> dict[str, str]:
-    """Verify available raw archive and plain files against cryptographically pinned digests.
-
-    Tests archive integrity and asserts that the processed AGEB polygon frame matches
-    contract expectations. Raises ValueError with actionable instructions if an expected
-    file has a hash mismatch or integrity failure.
-    """
-    if raw_dir is None:
-        raw_dir = DATA_RAW
-
-    verified: dict[str, str] = {}
-    mismatches: list[str] = []
-
-    # Map dataset keys to candidate file locations
-    checks = [
-        ("census_ageb_2020_09", raw_dir / "census_ageb_2020_09.zip"),
-        ("denue_09", raw_dir / "denue_09.zip"),
-        ("marco_geo_2020_09", raw_dir / "marco_geo_2020_09.zip"),
-        ("crime_fgj_2024", raw_dir / "crime_fgj_2024" / "crime_fgj_2024.csv"),
-    ]
-
-    for key, path in checks:
-        if not path.exists() and key == "crime_fgj_2024":
-            path = raw_dir / "crime_fgj_2024.csv"
-        if path.exists():
-            computed = _hash_file(path)
-            expected = PINNED_MANIFEST_DIGESTS[key]
-            if computed != expected:
-                mismatches.append(f"{key} ({path.name}): expected {expected}, got {computed}")
-            else:
-                verified[key] = computed
-                # If zip archive, also test archive member integrity
-                if path.suffix.lower() == ".zip":
-                    try:
-                        with zipfile.ZipFile(path, "r") as zf:
-                            corrupt_member = zf.testzip()
-                            if corrupt_member is not None:
-                                mismatches.append(
-                                    f"{key} ({path.name}): zip member '{corrupt_member}' failed CRC test"
-                                )
-                    except (zipfile.BadZipFile, OSError) as err:
-                        mismatches.append(f"{key} ({path.name}): failed to open zip archive ({err})")
-
-    # Verify processed ageb.parquet contract if present
-    ageb_path = DATA_PROCESSED / "ageb.parquet"
-    if ageb_path.exists():
-        gdf = load_ageb()
-        if len(gdf) != 2431:
-            mismatches.append(f"ageb.parquet: expected 2,431 urban AGEB polygons, got {len(gdf)}")
-        if gdf.crs is None or gdf.crs.to_epsg() != 6372:
-            mismatches.append(f"ageb.parquet: expected CRS EPSG:6372, got {gdf.crs}")
-        if not gdf.geometry.is_valid.all():
-            invalid_count = int((~gdf.geometry.is_valid).sum())
-            mismatches.append(f"ageb.parquet: contains {invalid_count} invalid geometries")
-
-    if mismatches:
-        err_list = "\n  - ".join(mismatches)
-        raise ValueError(
-            "Raw input provenance verification failed! Stale or corrupted files detected:\n  - "
-            f"{err_list}\n"
-            "Please halt ETL and re-profile/re-download the approved source dataset:\n"
-            "Run 'python -m src.pipeline download && python -m src.pipeline stage' with approved pinned sources."
-        )
-
-    return verified
-
 
 def verify_crime_provenance(crime_raw_path: Path | None = None) -> str:
     """Verify raw FGJ CDMX 2024 crime file against pinned SHA-256 digest."""
@@ -131,7 +49,7 @@ def _parse_census_population(series: pd.Series) -> pd.Series:
     Preserves '*' and 'N/D' as NaN; raises ValueError on unexpected non-numeric tokens.
     """
     suppressed = series.isin(SUPPRESSED_CODES)
-    numeric = series.mask(suppressed).apply(pd.to_numeric, errors="coerce")
+    numeric = pd.to_numeric(series.mask(suppressed), errors="coerce").astype("float64")
     unexpected = numeric.isna() & ~suppressed
     if unexpected.any():
         codes = sorted(set(series.where(unexpected).dropna()))
@@ -165,8 +83,15 @@ def census_polygon_compatibility(
     matched_numeric = _parse_census_population(matched_df["POBTOT"])
     orphan_numeric = _parse_census_population(orphans_df["POBTOT"])
 
-    matched_pop = int(matched_numeric.dropna().sum())
-    orphan_pop = int(orphan_numeric.dropna().sum())
+    # The warehouse contract requires a known population for every matched AGEB.
+    if matched_numeric.isna().any():
+        missing_keys = matched_df.loc[matched_numeric.isna(), "cvegeo"].tolist()
+        raise ValueError(f"Matched AGEB POBTOT must not be missing: {missing_keys}")
+    matched_pop = int(matched_numeric.sum())
+    # Empty groups contain no residents; a nonempty entirely unavailable group
+    # has unknown population. A partial subtotal is labelled through coverage.
+    orphan_total = orphan_numeric.sum(min_count=1) if len(orphan_numeric) else 0
+    orphan_pop = pd.NA if pd.isna(orphan_total) else int(orphan_total)
 
     orphan_summary = orphans_df[["cvegeo", "NOM_MUN", "MUN", "POBTOT"]].rename(
         columns={
@@ -188,6 +113,11 @@ def census_polygon_compatibility(
         "orphan_count": len(orphans_df),
         "matched_population": matched_pop,
         "orphan_population": orphan_pop,
+        "matched_population_observed_count": int(matched_numeric.notna().sum()),
+        "matched_population_missing_count": int(matched_numeric.isna().sum()),
+        "orphan_population_observed_count": int(orphan_numeric.notna().sum()),
+        "orphan_population_missing_count": int(orphan_numeric.isna().sum()),
+        "orphan_population_complete": bool(orphan_numeric.notna().all()),
         "matched_keys": matched_keys,
         "orphan_keys": sorted(orphans_df["cvegeo"].tolist()),
         "polygon_keys": polygon_keys,
@@ -310,10 +240,12 @@ def crime_temporal_and_grain_check(
     crime_df["dt_hecho"] = pd.to_datetime(crime_df["fecha_hecho"], errors="coerce")
 
     invalid_dates_count = int(crime_df["dt_hecho"].isna().sum())
+    invalid_filing_dates_count = int(crime_df["dt_inicio"].isna().sum())
     earlier_years_count = int((crime_df["dt_hecho"].dt.year < CRIME_YEAR).sum())
 
     filing_start = crime_df["dt_inicio"].min().strftime("%Y-%m-%d")
     filing_end = crime_df["dt_inicio"].max().strftime("%Y-%m-%d")
+    filing_days = pd.date_range(filing_start, filing_end)
     monthly_filings = crime_df["dt_inicio"].dt.month.value_counts().sort_index()
 
     # Offence year filter
@@ -346,12 +278,13 @@ def crime_temporal_and_grain_check(
         "sha256_digest": sha256_digest,
         "filing_start": filing_start,
         "filing_end": filing_end,
-        "calendar_days_count": 213,
-        "february_days_count": 29,
+        "calendar_days_count": len(filing_days),
+        "february_days_count": int(((filing_days.year == CRIME_YEAR) & (filing_days.month == 2)).sum()),
         "observed_filing_months": [1, 2, 3, 4, 5, 6, 7],
         "unobserved_filing_months": [8, 9, 10, 11, 12],
         "monthly_filings": monthly_filings,
         "invalid_dates_count": invalid_dates_count,
+        "invalid_filing_dates_count": invalid_filing_dates_count,
         "earlier_years_count": earlier_years_count,
         "year_2024_count": year_2024_count,
         "eligible_count": eligible_count,

@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+import geopandas as gpd
 
 from src.analysis.integration import (
     PINNED_CRIME_SHA256,
@@ -18,6 +19,7 @@ from src.analysis.integration import (
     verify_input_provenance,
 )
 from src.config import DATA_PROCESSED, DATA_RAW
+from src.transform import spatial
 
 
 @pytest.fixture(scope="module")
@@ -173,7 +175,9 @@ def test_denue_code_compatibility(denue_results):
     )
 
 
-def test_denue_zero_denominator():
+def test_denue_zero_denominator(monkeypatch):
+    polygons = gpd.GeoDataFrame({"cvegeo": []}, geometry=[], crs=6372)
+    monkeypatch.setattr(spatial, "load_ageb", lambda: polygons)
     empty_df = pd.DataFrame(
         columns=["cve_ent", "cve_mun", "cve_loc", "ageb", "latitud", "longitud"]
     )
@@ -197,6 +201,7 @@ def test_crime_temporal_and_grain(crime_results):
     assert crime_results["observed_filing_months"] == [1, 2, 3, 4, 5, 6, 7]
     assert crime_results["unobserved_filing_months"] == [8, 9, 10, 11, 12]
     assert crime_results["invalid_dates_count"] == 11
+    assert crime_results["invalid_filing_dates_count"] == 0
     assert crime_results["earlier_years_count"] == 15492
     assert crime_results["year_2024_count"] == 123127
     assert crime_results["eligible_count"] == 119666
@@ -212,6 +217,12 @@ def test_crime_temporal_and_grain(crime_results):
 
 
 def test_verify_input_provenance():
+    required = [
+        DATA_RAW / f"{key}.zip" for key in PINNED_MANIFEST_DIGESTS if key != "crime_fgj_2024"
+    ] + [DATA_RAW / "crime_fgj_2024.csv", DATA_RAW / "crime_fgj_2024/crime_fgj_2024.csv",
+         DATA_PROCESSED / "ageb.parquet"]
+    if not all(path.exists() for path in required):
+        pytest.skip("Complete pinned inputs and transformed geography are required")
     verified = verify_input_provenance()
     assert isinstance(verified, dict)
     for key, expected_hash in PINNED_MANIFEST_DIGESTS.items():
@@ -228,6 +239,8 @@ def test_verify_input_provenance_failure(tmp_path):
 
 
 def test_verify_crime_provenance(tmp_path):
+    if not (DATA_RAW / "crime_fgj_2024.csv").exists() and not (DATA_RAW / "crime_fgj_2024/crime_fgj_2024.csv").exists():
+        pytest.skip("Pinned FGJ source is missing")
     digest = verify_crime_provenance()
     assert digest == PINNED_CRIME_SHA256
 
@@ -258,9 +271,13 @@ def test_summary_table_generation(census_results, denue_results, crime_results):
 def test_temporal_figure_nan_semantics(tmp_path, crime_results):
     fig, axes = plot_cross_source_temporal_coverage(
         output_path=tmp_path / "temporal_test.png",
-        filing_monthly=crime_results["monthly_filings"],
+        filing_monthly=crime_results["monthly_filings"].drop(index=2),
         offence_monthly=crime_results["monthly_retained_offences"],
     )
     assert fig is not None
     assert len(axes) == 3
     assert (tmp_path / "temporal_test.png").exists()
+    # An observed empty February is zero; unobserved Aug-Dec must be missing.
+    heights = [bar.get_height() for bar in axes[1].patches if hasattr(bar, "get_height")]
+    assert heights[1] == 0
+    assert all(np.isnan(heights[i]) for i in [*range(7, 12), *range(19, 24)])
