@@ -12,17 +12,29 @@ the ability to identify the same area across sources.
 | Candidate unit | Suitability for the integrated analysis |
 |---|---|
 | Municipality / alcaldía | The 16 alcaldías are stable administrative units and provide a useful citywide summary, but each is too large to reveal neighbourhood-scale patterns. The Census and point sources can be aggregated to them, but doing so discards most local variation. |
-| Locality | INEGI provides locality identifiers and boundaries, and the Census has locality totals. Localities are fewer and uneven in size; the full study area spans 35 urban localities, including the main locality and outlying pueblos. Their totals do not give the same consistent, detailed cross-source resolution as the AGEB layer. |
+| Locality | INEGI provides locality identifiers and boundaries, and the Census has locality totals. The raw urban Census contains **2,433 AGEB totals across 35 municipality/locality pairs**. After matching Census keys to the 2020 polygon layer, the study frame contains **2,431 polygons across 33 pairs** (16 main-locality pairs and 17 outlying-locality pairs); locality totals are too few and uneven in size to give the same consistent, detailed cross-source resolution as AGEBs. |
 | Colonia | Familiar to residents and useful for service delivery, but colonias are not a single, consistently defined INEGI statistical geography. Boundaries and names vary by source, and Census rows cannot be joined to colonias without an additional allocation model. |
 | Hexagonal grid | A regular grid is useful for visualising point patterns and supports flexible cell sizes, but it has no direct Census identifier. Census counts would need areal interpolation, which introduces allocation assumptions and can create false precision. |
 | **Urban AGEB (selected)** | The Census publishes urban-AGEB totals and INEGI's Marco Geoestadístico 2020 supplies matching polygons and `CVEGEO` identifiers. All **2,431** polygons have a Census row and valid geometry; the same polygons support point-in-polygon assignment for DENUE and FGJ. The unit preserves substantially more within-city detail than alcaldías without interpolating demographic counts. |
 
-The selected geography covers **2,431 urban AGEBs**: **2,348** in the main
-locality (`cve_loc = '0001'`) and 83 in 17 other urban localities. The main
-locality subset represents the contiguous city-core sample for analyses that
-need a connected study area. Rural localities do not have AGEB-level Census
-data and are outside the analysis. The two Census AGEB rows without a polygon
-in the 2020 frame are excluded and recorded in the Census transform.
+The selected polygon geography covers **2,431 urban AGEBs** in **33 retained
+municipality/locality pairs**: **2,348** in the main localities
+(`cve_loc = '0001'`) and 83 in 17 outlying localities. The raw Census universe
+has 2,433 AGEB totals across 35 municipality/locality pairs. The Census-only
+pairs `cve_mun/cve_loc = 011/0110` and `012/0135` have no matching 2020 polygon;
+their orphan AGEB keys `0901101101107` and `0901201351227` are excluded from the
+matched study frame. The main-locality subset represents the contiguous
+city-core sample for analyses that need a connected study area. Rural
+localities do not have AGEB-level Census data and are outside the analysis.
+
+Reproduce the number of retained municipality/locality pairs from the loaded
+warehouse:
+
+```sql
+SELECT COUNT(*) FROM (
+  SELECT DISTINCT cve_mun, cve_loc FROM dw.dim_geography
+) AS retained_localities;   -- expected: 33
+```
 
 ## 2.2 Coordinate reference system
 
