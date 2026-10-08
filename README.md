@@ -43,6 +43,50 @@ Source: [`docs/pipeline.mmd`](docs/pipeline.mmd). Every step is run by `python -
 
 _TODO (each owner): principal cleaning, transformation and spatial-integration decisions per source, including every transformation that changes grain, meaning or geographic representation._
 
+### Census demographic layer
+
+[`src/transform/census.py`](src/transform/census.py) reads the INEGI Census 2020
+AGEB and block file for Mexico City with every column as text, so zero-padded
+keys and the codes `*` and `N/D` stay as published. The file mixes five
+aggregation levels (state, alcaldía, locality, AGEB and block rows). Only the
+**urban AGEB total rows** (`MZA = '000'`, `AGEB <> '0000'`) are kept: adding
+block rows or higher-level totals would count residents twice. `cvegeo` is
+built as `ENTIDAD + MUN + LOC + AGEB` (13 characters) and matched against the
+urban AGEB polygons. The 2 census AGEBs without a polygon in the 2020 frame
+(`0901101101107`, `0901201351227`) are dropped and reported.
+
+| Step | Retained rows | Residents (`POBTOT`) |
+|---|---:|---:|
+| Raw rows (1 state, 16 alcaldía and 35 locality totals, 2,433 AGEBs, 66,456 blocks) | 68,941 | — |
+| Keep urban AGEB total rows | 2,433 | 9,145,632 |
+| Keep AGEBs with a 2020 polygon | **2,431** | **9,138,524** |
+
+The 2,431 AGEBs hold 99.2% of the state population (9,209,944). The other
+71,420 residents are the 64,312 who live in rural localities, which have no
+AGEB breakdown (mostly in the southern alcaldías; Milpa Alta alone has 23,975),
+and the 7,108 in the two dropped AGEBs. Every KPI describes the urban area.
+
+The 20 source variables are renamed to the `dw.fact_census_ageb` columns
+(mapping in the [data dictionary](docs/data_dictionary.md)). Counts become
+nullable integers and the two averages (`GRAPROES`, `PROM_OCUP`) decimals; any
+value that is not a number, `*` or `N/D` raises an error instead of silently
+becoming NULL. INEGI publishes `*` when a value could identify a household and
+`N/D` when it is not available: both are stored as **NULL, never 0**, and
+counted per AGEB in `n_suppressed_fields`. Mexico City has 249 suppressed
+values in 73 AGEBs (27,768 residents, 0.30%), from 1 to 17 fields per AGEB, and
+no `N/D`; `pop_total` is never suppressed. `PEA` and `P_12YMAS` are suppressed
+together in 10 AGEBs of 1–14 residents, so `pea_rate` is NULL there and in the
+17 AGEBs without residents. Sums skip NULLs: Σ `pea` = 5,061,682 and
+Σ `pop_12_plus` = 7,858,894 cover the same 2,421 AGEBs.
+
+The output, `data/processed/census_ageb.parquet`, keeps one row per AGEB
+without geometry; it joins `dim_geography` through `cvegeo`. The transform
+asserts 2,431 unique keys equal to the polygon set, no NULL `pop_total` and the
+three reference sums; `sql/04_validation.sql` re-checks the population in the
+warehouse, and [`tests/test_census.py`](tests/test_census.py) covers row
+selection, suppression and the column contract. Profiling evidence:
+[`notebooks/11_profile_census.ipynb`](notebooks/11_profile_census.ipynb).
+
 ### DENUE economic layer
 
 The DENUE transform reads the complete Mexico City snapshot with Latin-1 encoding
