@@ -54,6 +54,6 @@ multiplicity-adjusted hotspots.
 | Business density | 2,348 | 482 (20.5%) | 109 | 312 | 33 | 28 | 1,866 |
 | Crime rate per 1k | 2,297 | 540 (23.5%) | 110 | 344 | 10 | 76 | 1,757 |
 
-- **Business density:** High-High clusters concentrate along central commercial corridors (Cuauhtémoc, Benito Juárez, and Miguel Hidalgo), whereas Low-Low clusters dominate peripheral residential areas.
+- **Business density:** High-High clusters concentrate in the central commercial core: 76 of the 109 are in Cuauhtémoc, followed by Venustiano Carranza (12) and Miguel Hidalgo (7). Low-Low clusters dominate the southern and western periphery (Xochimilco 74, Tlalpan 67, Álvaro Obregón 48).
 - **Crime rate:** High-High clusters align with central commercial and transit hubs, while extensive Low-Low clusters cover peripheral residential zones.
 - **Analytical Caution:** Spatial association describes geographic clustering under the chosen spatial weights; it does not demonstrate that commercial activity, population density, or economic participation causally induce criminal incidents in neighboring AGEBs.
