@@ -107,6 +107,13 @@ sectors are Other. Official combined sectors 31–33 and 48–49 are preserved.
 
 ### FGJ public-safety layer
 
+The pinned FGJ CSV covers investigation files opened from **1 January to
+31 July 2024**, as confirmed by profiling `fecha_inicio`. Its SHA-256 is
+`2ac3f17189a61ab7b2eb95fb21470e46adaba6f92526c7b92d23190ed2431f84`.
+Crime counts and rates therefore describe a **January–July snapshot**, not a
+complete 2024 year. August–December are unavailable, and offences reported
+after the filing cutoff are not recovered by the offence-date filter.
+
 [`src/transform/crime.py`](src/transform/crime.py) reads the FGJ CSV as strings
 from `data/raw/crime_fgj_2024/crime_fgj_2024.csv`. The source has one row per
 investigation file opened in 2024; the analytical sample keeps **offences dated
@@ -158,6 +165,14 @@ The transform checks key uniqueness, assigned AGEBs, hour range, CRS and a
 single category per type. Its expected final count allows a **0.5% tolerance**
 around 112,285; the table above is evidence for the pinned inputs, not a fixed
 count for every future source version.
+
+Warehouse temporal and bivariate evidence is documented in
+[`docs/crime_analysis.md`](docs/crime_analysis.md) and the executed
+[`notebook 33`](notebooks/33_crime_patterns_bivariate.ipynb). Report sources are
+[section 1](report/sections/1_problem_data_sources.md) and
+[section 6](report/sections/6_limitations.md); the
+[Valeria findings handoff](report/valeria_findings_handoff.md) provides two
+findings and figure captions for final report assembly.
 
 ## 5. PostgreSQL/PostGIS Data Warehouse
 

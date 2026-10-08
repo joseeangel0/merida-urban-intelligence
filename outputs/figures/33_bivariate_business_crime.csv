@@ -1,0 +1,5 @@
+x,spatial_lag_of,weights,scale,n,I,p_sim,z_sim,permutations,seed,components,islands_after_attachment,mean_neighbours
+business_density_km2,crime_rate_per_1k,Queen,raw,2297,0.20101977692631703,0.001,13.137741509233178,999,42,2,0,5.884196778406618
+business_density_km2,crime_rate_per_1k,Queen,log1p,2297,0.17852471574749662,0.001,11.412756390053362,999,42,2,0,5.884196778406618
+business_density_km2,crime_rate_per_1k,KNN-6,raw,2297,0.2068145259515802,0.001,13.755589544889272,999,42,2,0,6.0
+business_density_km2,crime_rate_per_1k,KNN-6,log1p,2297,0.18257373573799932,0.001,12.69406074232649,999,42,2,0,6.0
