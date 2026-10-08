@@ -107,6 +107,13 @@ sectors are Other. Official combined sectors 31–33 and 48–49 are preserved.
 
 ### FGJ public-safety layer
 
+The pinned FGJ CSV covers investigation files opened from **1 January to
+31 July 2024**, as confirmed by profiling `fecha_inicio`. Its SHA-256 is
+`2ac3f17189a61ab7b2eb95fb21470e46adaba6f92526c7b92d23190ed2431f84`.
+Crime counts and rates therefore describe a **January–July snapshot**, not a
+complete 2024 year. August–December are unavailable, and offences reported
+after the filing cutoff are not recovered by the offence-date filter.
+
 [`src/transform/crime.py`](src/transform/crime.py) reads the FGJ CSV as strings
 from `data/raw/crime_fgj_2024/crime_fgj_2024.csv`. The source has one row per
 investigation file opened in 2024; the analytical sample keeps **offences dated
@@ -209,7 +216,7 @@ Ratios with a zero denominator are `NULL`. `low_population` flags the 55 AGEBs w
 
 ## 7. Spatial analysis
 
-_TODO (Julio, Nora, Lorena, Valeria, Gustavo): neighbourhood rule, correlation, Global Moran's I, LISA, bivariate Moran's I, findings._
+_TODO (Jose, Lorena, Gustavo): remaining correlation, map, Global Moran/LISA and area-comparison findings._
 
 Nora's reproducible spatial workflow uses the 2,348 city-core AGEBs of Mexico
 City (the main locality of each alcaldía). The primary weights are
@@ -222,6 +229,44 @@ scatterplots, and maps significant Local Moran clusters (HH, LL, HL and LH) at
 α = 0.05 with `src.analysis.spatial_weights.local_clusters` (fixed seed 42, so
 results are reproducible). These statistics describe spatial association and do
 not establish causal relationships.
+
+### Crime temporal patterns and bivariate Moran (Valeria)
+
+[`notebooks/33_crime_patterns_bivariate.ipynb`](notebooks/33_crime_patterns_bivariate.ipynb)
+reads `dw.v_crime_by_type_time` with `load_view()` and `dw.v_kpi_ageb` with
+`load_kpis()`. Temporal summaries sum `incidents` across all 2,431 urban AGEBs
+and reconcile to **112,285** retained files. Calendar-day averages use the
+profiled **1 January–31 July 2024** window (213 days); August–December remain
+unavailable, rather than zero-crime months. Unknown hours are retained
+separately (170 files). April has the highest observed monthly average
+(565.23 files/day); this is descriptive and does not establish annual seasonality.
+Charts and summary tables are exported to `outputs/figures/`, including the
+month, weekday and time-band comparison by analytical category in
+[`crime_temporal_patterns.png`](outputs/figures/crime_temporal_patterns.png).
+
+The bivariate analysis tests business density at each AGEB against the spatial
+lag of crime rate in its neighbours, using Nora's row-standardised
+`build_weights`. The default city-core and low-population filters retain
+**2,297 AGEBs** (51 low-population city-core AGEBs excluded; no additional
+incomplete pairs). Queen and KNN-6 use the same ordered sample, each with two
+components and no remaining islands. With **999 permutations**, seed **42**:
+
+| Indicator scale | Queen I | KNN-6 I | `p_sim` (each) |
+|---|---:|---:|---:|
+| Raw (primary) | 0.201020 | 0.206815 | 0.001 |
+| log1p (sensitivity) | 0.178525 | 0.182574 | 0.001 |
+
+These specifications show positive spatial association in this sample. PySAL's
+`p_sim` is the smaller-tail permutation pseudo p-value, with a minimum of 0.001
+for 999 permutations; sensitivity checks have no multiple-comparison correction.
+They do not control for same-AGEB correlation or preserve the spatial structure
+of the permuted crime indicator. Source-date differences, resident denominators,
+urban intensity and reporting processes limit interpretation; no causal effect
+is estimated. Figure: [`bivariate_moran_business_crime.png`](outputs/figures/bivariate_moran_business_crime.png).
+Permutation z-scores are included in the notebook table and exported result CSV.
+Execution metadata and package versions: [`33_crime_analysis_metadata.json`](outputs/figures/33_crime_analysis_metadata.json).
+Report handoff: [section 1, problem and sources](report/sections/1_problem_data_sources.md)
+and [section 6, limitations](report/sections/6_limitations.md).
 
 ## 8. Reproducing the project
 
