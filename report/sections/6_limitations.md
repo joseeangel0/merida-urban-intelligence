@@ -16,7 +16,9 @@ Counts and `crime_rate_per_1k` describe this retained snapshot and are not
 annualised. Monthly and weekday averages in notebook 33 use the 213-day
 filing window. Offences reported after July remain absent, particularly
 affecting interpretation of July; calendar adjustments cannot remove that
-right censoring. Seven observed months do not establish annual seasonality.
+right censoring. Excluding July raises the weekday averages by 2.6–5.2%
+without changing the highest weekday (Friday). Seven observed months do not
+establish annual seasonality.
 Resident denominators also omit commuters and visitors, so a rate in a
 commercial or transit area is not an individual victimisation probability.
 
@@ -65,7 +67,7 @@ does not preserve their spatial autocorrelation or condition on same-AGEB
 correlation; these exploratory checks have no multiple-comparison correction.
 Urban intensity, reporting and source-date differences may contribute to the
 pattern. No causal effect or local hotspot is identified by this global
-statistic. Boundaries and scale can alter associations (MAUP), and area-level
+statistic or by the descriptive scatterplot quadrant shares. Boundaries and scale can alter associations (MAUP), and area-level
 results cannot establish individual behaviour (ecological fallacy).
 
 ## 6.5 Study-area change and report evidence
@@ -78,7 +80,7 @@ Urban coverage does not represent rural CDMX or support extrapolation to Mérida
 
 Executed evidence and figure exports are in
 [`notebook 33`](../../notebooks/33_crime_patterns_bivariate.ipynb), including the
-[temporal chart](../../outputs/figures/crime_monthly_2024.png) and
+[temporal chart](../../outputs/figures/crime_temporal_patterns.png) and
 [bivariate comparison](../../outputs/figures/bivariate_moran_business_crime.png).
 Gustavo can use these descriptive findings alongside the stated limitations
 when assembling the report.
