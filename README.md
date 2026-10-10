@@ -282,19 +282,51 @@ Key spatial findings from `notebooks/32_global_moran_lisa.ipynb` (999 permutatio
 
 ## 8. Reproducing the project
 
-**Requirements:** Python ≥ 3.11, Docker (Docker Desktop or OrbStack), Git.
+**Requirements:** Python ≥ 3.11, Docker (Docker Desktop or OrbStack), Git, about 3 GB of free disk space (sources, virtual environment and database).
+
+macOS / Linux:
 
 ```bash
-git clone <repo-url> && cd merida-urban-intelligence
-python3 -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
+git clone https://github.com/joseeangel0/merida-urban-intelligence.git
+cd merida-urban-intelligence
+git checkout v1.0.1                                      # pinned release (omit to use the latest main)
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env                                     # Windows: copy .env.example .env
+cp .env.example .env
 docker compose up -d --wait                              # PostgreSQL 16 + PostGIS 3.5 on localhost:5433
 
 python -m src.pipeline all                               # download → transform → schema → stage → load → views → validate
 ```
 
-Individual steps: `python -m src.pipeline download transform` (see `src/pipeline.py`). Connect with any client to `postgresql://merida:merida@localhost:5433/merida_dw`, or `docker exec -it merida_dw psql -U merida -d merida_dw`.
+Windows (PowerShell):
+
+```powershell
+git clone https://github.com/joseeangel0/merida-urban-intelligence.git
+cd merida-urban-intelligence
+git checkout v1.0.1
+python -m venv .venv                                     # use "python": "python3" may open the Microsoft Store stub
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env
+docker compose up -d --wait
+
+python -m src.pipeline all
+```
+
+**Source versions.** The downloader checks every raw file against the SHA-256 pinned in `src/config.py` (the versions the submitted results were built from). If an official URL fails, as the FGJ host does while its TLS certificate is expired, or now serves a different version, the byte-identical copy is fetched from the [`data-v1.0` release](https://github.com/joseeangel0/merida-urban-intelligence/releases/tag/data-v1.0) instead. TLS verification is never disabled; a file that matches neither source stops the pipeline. To check a raw file by hand: `shasum -a 256 data/raw/crime_fgj_2024.csv` (PowerShell: `Get-FileHash data\raw\crime_fgj_2024.csv`).
+
+**Expected result.** The `validate` step ends with these NOTICEs; any mismatch raises an exception instead:
+
+```
+[geo] 2431 AGEBs, all valid, EPSG:6372, 792.15 km2
+[census] every AGEB has a census row, population = 9138524
+[spatial] every business and incident lies inside its assigned AGEB
+[kpi] v_kpi_ageb: 2431 AGEBs, population 9138524, businesses 461231, incidents 112285
+```
+
+**Second checkout on the same machine.** Compose names the volume after the folder, so two clones in folders with the same name share one database, and the container name `merida_dw` can only exist once. Before `docker compose up`, uncomment the three isolation lines in `.env` (`COMPOSE_PROJECT_NAME`, `DW_CONTAINER`, `POSTGRES_PORT`); the pipeline reads the same `.env`, so it connects to the new port automatically.
+
+Individual steps: `python -m src.pipeline download transform` (see `src/pipeline.py`). Connect with any client to `postgresql://merida:merida@localhost:5433/merida_dw`, or `docker exec -it merida_dw psql -U merida -d merida_dw` (use your `DW_CONTAINER` name if you changed it).
 
 ## 9. Repository structure
 
