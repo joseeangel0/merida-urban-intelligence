@@ -324,7 +324,7 @@ python -m src.pipeline all
 [kpi] v_kpi_ageb: 2431 AGEBs, population 9138524, businesses 461231, incidents 112285
 ```
 
-**Second checkout on the same machine.** Compose names the volume after the folder, so two clones in folders with the same name share one database, and the container name `merida_dw` can only exist once. Before `docker compose up`, uncomment the three isolation lines in `.env` (`COMPOSE_PROJECT_NAME`, `DW_CONTAINER`, `POSTGRES_PORT`); the pipeline reads the same `.env`, so it connects to the new port automatically.
+**Second checkout on the same machine.** Compose names the volume after the folder, so two clones in folders with the same name share one database, and the container name `merida_dw` can only exist once. Before `docker compose up`, uncomment `COMPOSE_PROJECT_NAME` and `DW_CONTAINER` in `.env` and change `POSTGRES_PORT` (e.g. to `5434`); the pipeline reads the same `.env`, so it connects to the new port automatically.
 
 Individual steps: `python -m src.pipeline download transform` (see `src/pipeline.py`). Connect with any client to `postgresql://merida:merida@localhost:5433/merida_dw`, or `docker exec -it merida_dw psql -U merida -d merida_dw` (use your `DW_CONTAINER` name if you changed it).
 
