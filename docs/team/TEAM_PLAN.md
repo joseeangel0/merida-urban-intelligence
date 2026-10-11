@@ -193,7 +193,7 @@ Tasks:
 - [x] Global Moran for at least 2 indicators: 999 permutations, seed 42, I, E[I], permutation z-score, pseudo p-value and n; Queen vs KNN-6 comparison on identical indicator-specific samples; scatterplots saved and non-causal interpretation written.
 - [x] LISA for at least 2 indicators: shared `local_clusters`, 999 permutations, seed 42, HH / LL / HL / LH / not-significant maps saved, and significant-AGEB list exported with indicator, cluster and pseudo p-value.
 - [x] Report sections 3 and 4 completed; section 3 has a verified crime fact count and resolved figure references, with no `_TBD_` or `Figure X` / `Figure Y` placeholders.
-- [ ] Tag `v1.0` created on a clean working tree. (pending: tag v1.0 exists at 5e307ea; working-tree cleanliness at creation is not evidenced.)
+- [x] Tag `v1.0` created on a clean working tree. (`git status --short` printed nothing immediately before `git tag -a v1.0`; receipt in [#33](https://github.com/joseeangel0/merida-urban-intelligence/pull/33#issuecomment-6100897427).)
 
 **Suggested commits:** `analysis(spatial): execute global moran and lisa notebook` · `docs(report): finalize spatial kpis report section` · `docs(readme): spatial findings and release instructions` · `chore(repo): release tag v1.0`.
 
