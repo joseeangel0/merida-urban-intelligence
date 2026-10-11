@@ -8,7 +8,7 @@
 
 ## 1. Source Inventory
 
-The Data Warehouse integrates four official datasets published by Mexican government agencies (INEGI and FGJ CDMX). Raw files are downloaded into `data/raw/` via `python -m src.pipeline download`, which records computed SHA-256 digests and metadata into `data/raw/manifest.json`. The download script logs a warning if an existing manifest hash differs but does not abort or enforce a hard validation gate; reproducibility requires explicitly verifying input file checksums against the expected digests in the table below before executing commands that rewrite the manifest. If a checksum diverges, ETL execution must halt to re-profile or obtain an approved dataset, and extracted directory contents must correspond to the verified archive.
+The Data Warehouse integrates four official datasets published by Mexican government agencies (INEGI and FGJ CDMX). Raw files are downloaded into `data/raw/` via `python -m src.pipeline download`, which records computed SHA-256 digests and metadata into `data/raw/manifest.json`. Each file must match the SHA-256 pinned in `src/config.py` (the digests in the table below). If an official URL fails or serves a different version, the downloader fetches the byte-identical copy published in the [`data-v1.0` release](https://github.com/joseeangel0/merida-urban-intelligence/releases/tag/data-v1.0) and re-extracts it; a file that matches neither source stops the pipeline at the download step. TLS verification is never disabled. Changing a source version therefore requires updating its pinned digest and re-profiling the data.
 
 | Dataset Key | Name & Publisher | URL | Licence | Version / Date | Original Grain | CRS | Temporal Coverage | Key Variables | SHA-256 Digest |
 |---|---|---|---|---|---|---|---|---|---|
@@ -43,7 +43,7 @@ This register documents observed empirical data defects across the four source d
 | 7 | **Non-criminal administrative incidents in crime logs** | `crime_fgj_2024` | 3,623 rows in the file; 3,461 of them among the 123,127 offences dated 2024 | Overstates criminal victimization with administrative lost property or natural deaths. | Dropped during ETL (`categoria_delito != 'HECHO NO DELICTIVO'`). | Valeria (`crime.py`) |
 | 8 | **Exact incident duplicates among geolocated records** | `crime_fgj_2024` | 0 exact duplicates (`delito`, date, hour, coordinates) among the 112,484 geolocated rows; 680 apparent duplicates appear only if deduplicating before the coordinate filter, all without coordinates | Risk of artificial inflation in crime counts. | Deduplication runs after the coordinate filter so rows without coordinates are not treated as equal; it removes 0 rows. | Valeria (`crime.py`) |
 | 9 | **Lack of primary incident identifier in source** | `crime_fgj_2024` | All 138,630 rows in raw CSV lack an incident ID | Unable to enforce entity integrity in dimensional model. | Synthesized stable, traceable natural key: `source_incident_id = 'fgj2024-' + row_number` (1-based, header excluded). | Valeria (`crime.py`) |
-| 10 | **Host TLS certificate expiration** | `crime_fgj_2024` (host: `archivo.datos.cdmx.gob.mx`) | Expired Let's Encrypt certificate on 5 Oct 2026 | Automated pipeline download aborts under standard TLS verification. | Enforced strict TLS verification policy (no insecure flags); dataset pinned and cached with SHA-256 validation. | Team Lead (`download_sources.py`) |
+| 10 | **Host TLS certificate expiration** | `crime_fgj_2024` (host: `archivo.datos.cdmx.gob.mx`) | Expired Let's Encrypt certificate on 5 Oct 2026 | Automated pipeline download aborts under standard TLS verification. | Enforced strict TLS verification policy (no insecure flags); the downloader falls back to the pinned, SHA-256-verified copy in the `data-v1.0` release. | Team Lead (`download_sources.py`) |
 | 11 | **Multi-source temporal misalignment** | All 4 sources | Census 2020, DENUE May 2026, FGJ Jan–Jul 2024 | Conflates different economic and demographic epochs; rates are descriptive cross-sections. | Explicitly documented in report Sections 1 & 6; rates are not treated as causal or simultaneous probabilities. | Valeria / Gustavo |
 | 12 | **Partial-year crime coverage (7-month snapshot)** | `crime_fgj_2024` | All 138,630 `fecha_inicio` values fall between 1 Jan and 31 Jul 2024 (213 calendar days); loaded offence dates span the same window | Aug–Dec are unavailable; treating them as zero would severely distort seasonality. | Calendar-exposure models use 213 observed days (leap year Feb = 29); Aug–Dec set to `NULL`/`NA` (not 0); no annualization. | Valeria (`src/analysis/crime_patterns.py`, PR #21) |
 | 13 | **Extreme per-capita rate outliers in low-population AGEBs** | `v_kpi_ageb` | 55 AGEBs with `pop_total < 100` (17 with 0 residents) | Tiny denominators cause per-capita business and crime rates to explode (e.g. historic centre). | Flagged with boolean `low_population = TRUE`. Excluded by default in `src.analysis.data.load_kpis()`. | Jose (`03_views.sql` / `data.py`) |
@@ -55,13 +55,13 @@ This register documents observed empirical data defects across the four source d
 
 Raw source archives and pipeline steps can be verified locally:
 ```bash
-# 1. Verify raw input digests against Section 1 pinned digests before downloading or overwriting
+# 1. Optional manual check of raw input digests against Section 1 (the download step enforces them)
 shasum -a 256 data/raw/census_ageb_2020_09.zip \
                data/raw/denue_09.zip \
                data/raw/marco_geo_2020_09.zip \
                data/raw/crime_fgj_2024.csv
 
-# 2. Compute and record raw source metadata into data/raw/manifest.json
+# 2. Download or verify the pinned sources and record metadata into data/raw/manifest.json
 python -m src.pipeline download
 
 # 3. Run data warehouse validation script across loaded relations and views

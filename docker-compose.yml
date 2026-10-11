@@ -2,7 +2,8 @@
 services:
   db:
     image: imresamu/postgis:16-3.5
-    container_name: merida_dw
+    # Overridable so a second checkout can run beside this one (see README §8)
+    container_name: ${DW_CONTAINER:-merida_dw}
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-merida_dw}
       POSTGRES_USER: ${POSTGRES_USER:-merida}
