@@ -186,7 +186,7 @@ Tasks:
 ```
 
 **Win conditions**
-- [ ] A teammate can go from `git clone` to a populated DW with only the README commands. (pending: Windows setup adaptations, a Docker name conflict and FGJ TLS prevent README-only reproduction of v1.0.)
+- [x] A teammate can go from `git clone` to a populated DW with only the README commands. (v1.0.1: on 2026-10-11 a fresh macOS clone of `cd6eac6` with the README §8 commands and an isolated container on port 5434 ran `python -m src.pipeline all` through `validate` with no exception: 2,431 AGEBs, 9,138,524 residents, 461,231 businesses, 112,285 incidents. Windows was not re-run. v1.0 itself still needs the workarounds from #33.)
 - [x] `python -m src.pipeline all` ends with the validation NOTICE and no exception.
 - [x] `SELECT count(*) FROM dw.v_kpi_ageb` = 2,431; `SELECT sum(pop_total) FROM dw.v_kpi_ageb` = 9,138,524.
 - [x] `notebooks/32_global_moran_lisa.ipynb` committed with outputs and maps saved to `outputs/maps/`.
@@ -427,7 +427,7 @@ Each member writes their section as `report/sections/<n>_<topic>.md` (own commit
 
 ## 6. Final checklist (Jose, before tagging v1.0)
 
-- [ ] Fresh clone → README commands → full DW + validation passes. (pending: Windows setup adaptations, a Docker name conflict and FGJ TLS prevent README-only reproduction of v1.0.)
+- [x] Fresh clone → README commands → full DW + validation passes. (v1.0.1: on 2026-10-11 a fresh macOS clone of `cd6eac6` with the README §8 commands and an isolated container on port 5434 ran `python -m src.pipeline all` through `validate` with no exception: 2,431 AGEBs, 9,138,524 residents, 461,231 businesses, 112,285 incidents. Windows was not re-run. v1.0 itself still needs the workarounds from #33.)
 - [x] Every KPI in the brief has a column in `dw.v_kpi_ageb` or a view (Incidents by type and time → `v_crime_by_type_time`).
 - [x] Correlation (≥ 3), Global Moran (≥ 2), LISA, bivariate Moran (≥ 1), neighbourhood rule explained.
 - [x] Data dictionary complete, diagram present, maps/figures in `outputs/`.
